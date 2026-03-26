@@ -29,3 +29,64 @@ Resolución
 4. El backend (aplicación servidor) podrá desarrollarse en cualquier lenguaje de programación a elección, siempre y cuando le permita conectar con la interfaz gráfica que utilice.
 
 5. Cuando se abre la aplicación cliente, la interfaz gráfica deberá mostrar una tabla o listado de los materiales/objetos en el stock con su nombre y cantidad correspondiente. Como así también las operaciones mínimas que usted encuentre en la consigna.
+
+
+    __________________________________________________________________
+                           PLANTA DE RECICLAJE
+    __________________________________________________________________
+                                    |
+                            Se encarga de
+                                    |
+               ____________                     ____________
+                  VENDER                           COMPRAR
+               ____________                     ____________
+                    |                                 | 
+    //accion al vender baja el stock      //accion al comprar el stock sube
+                    |_________________________________|
+                                     |
+                                MATERIAL/ES (// Pueder ser por herencia)
+                                     |
+                           Se puede adquirir por
+  ___________________________________|__________________________________
+  |                                  |                                  |
+X UNIDAD                          X KILO                              X m3
+  |                                  |                                  |
+Nro entero             VIDRIO, HIERRO, ALUMINIO, COBRE,              ACEITE DE 
+BATERIA DE              BRONCE, CARTON, PAPEL BLANCO,                 GIRASOL
+VEHICULOS                    TAPAS DE PLASTICO
+    ---------------------------------------------------------------------
+                             TENER CUIDADO!!!!!
+   ------------------------------------------------------------------------
+      1)   EL STOCK NO DEBE ESTAR EN NEGATIVO
+      2)   NO DUPLICAR MATERIALES
+      3)   PONER MONTOS EN COMPRAR/VENTAS
+      2)   CADA MATERIAL CON SU MEDIDA
+
+          /////////////////// BOCETO DE TABLA //////////////////////
+          
+            PLANTA DE RECICLAJE. SRL
+____________________________________________________
+| id | MATERIAL | MEDIDA | CANTIDAD | preciUnitario|
+____________________________________________________
+|  1 |  vidrio  |   Kl   |     4    |  $1.0000     |
+____________________________________________________
+                     | TOTAL:  $ 4.000             |
+                      ______________________________
+ _
+|_| retira: _ _ / _ _ / _ _
+ _
+|_| envio: _ _ / _ _ / _ _
+
+------ NECESITAMOS TABLA CON:
+ ID -> PRIMARY KEY AUTOINCREMENT
+MATERIAL -> UNIQUE NOT NULL
+MEDIDA -> NOT NULL
+CANTIDAD -> NOT NULL MAYOR A 0
+precioUnitario -> NOT NULL MAYOR A CERO
+
+
+-------- LA APP VA A PODER REALIZAR
+* VER STOCK DE LOS MATERIALES
+* REGISTRAR COMPRA DE MATERIALES
+* REGISTRAR VENTA DE MATERIALE
+* AGREGAR MATERIAL
