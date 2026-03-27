@@ -1,0 +1,9 @@
+{
+  "name": "planta-de-reciclaje",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "express": "*",
+    "mysql2": "*"
+  }
+}
