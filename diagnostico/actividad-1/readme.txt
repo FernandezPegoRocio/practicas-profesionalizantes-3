@@ -91,3 +91,30 @@ precioUnitario -> NOT NULL MAYOR A CERO
 * REGISTRAR COMPRA DE MATERIALES
 * REGISTRAR VENTA DE MATERIALE
 * AGREGAR MATERIAL
+____________________________________________________________________________________________________
+_______________________________________database.js__________________________________________________
+//Necesitamos importar el idioma: 
+const mysql2 = require('mysql2');
+
+//Importamos el paquete mysql2, estructura base:
+
+const pool = ___.___ ({
+    host: '___',
+    user: '___',
+    password: '___',
+    database: '___'
+});
+
+//Creamos un pool de conexiones a tu base de datos MySQ
+pool.query(CREATE TABLE con toda la informacion)
+
+//Si la tabla ya existe no la vuelve a crear, si no existe la crea. Para ello escribimos:
+    if (err) console.error('Error al crear la tabla:', err);
+    else console.log('Tabla stock lista');
+
+//Exportás el pool para que server.js lo pueda importar y usarlo en las rutas.
+module.exports = pool;
+
+____________________________________________________________________________________________________
+_________________________________________server.js__________________________________________________
+
