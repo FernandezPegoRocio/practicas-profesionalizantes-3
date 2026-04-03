@@ -118,3 +118,51 @@ module.exports = pool;
 ____________________________________________________________________________________________________
 _________________________________________server.js__________________________________________________
 
+-----------definiciones importantes:
+express -> permite crear el servidor y las rutas
+pool -> importa la conexión a la base de datos desde database.js
+app.use(express.json()) -> entiende los datos en formato JSON que llegan desde el frontend. 
+GET -> recupera info
+POST -> envía datos
+app.listen(3000) → arranca el servidor en el puerto 3000
+
+-----------estructura base que sirve para proyectos:
+// Importamos el paquete para crear el servidor
+const ___ = require('express');
+
+// Importamos la conexión a la base de datos
+const ___ = require('./___');
+
+// Creamos la aplicación
+const app = ___();
+app.use(___.json());
+
+// Ruta GET - obtener datos
+app.get('/___', function(req, res) {
+    ___.query('SELECT * FROM ___', function(err, resultados) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(___);
+    });
+});
+
+// Ruta POST - insertar datos
+app.post('/___', function(req, res) {
+    const { ___ } = req.body;
+    ___.query(
+        'INSERT INTO ___ (___) VALUES (?)',
+        [___],
+        function(err, resultado) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ mensaje: '___' });
+        }
+    );
+});
+
+// Ruta PUT - modificar datos
+app.put('/___', function(req, res) { ... });
+
+// Ruta DELETE - eliminar datos
+app.delete('/___', function(req, res) { ... });
+
+// Iniciamos el servidor en el puerto ___
+app.listen(___, () => { console.log('___'); });
