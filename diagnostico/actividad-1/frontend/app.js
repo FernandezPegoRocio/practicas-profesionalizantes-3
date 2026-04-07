@@ -27,6 +27,10 @@ function mostrarStock() {
 
 function main() {
 
+    function mostrarFormularioAgregar() { console.log("Mostrar Agregar"); }
+    function mostrarFormularioCompra() { console.log("Mostrar Compra"); }
+    function mostrarFormularioVenta() { console.log("Mostrar Venta"); }
+
    document.getElementById('btnMostrarStock').onclick = mostrarStock;
     document.getElementById('btnAgregarMaterial').onclick = mostrarFormularioAgregar;
     document.getElementById('btnRegistrarCompra').onclick = mostrarFormularioCompra;
