@@ -166,3 +166,91 @@ app.delete('/___', function(req, res) { ... });
 
 // Iniciamos el servidor en el puerto ___
 app.listen(___, () => { console.log('___'); });
+
+____________________________________________________________________________________________________
+___________________________________________index.html________________________________________________
+
+Es la estructura visual de la aplicación. Define qué elementos aparecen en la pantalla.
+Tiene cuatro partes principales:
+Head -> configura la página
+Botones -> los cuatro botones superiores que el usuario usa para interactuar. Cada uno tiene un id único para que app.js pueda conectarles una acción
+Tabla -> muestra el stock. El encabezado está escrito en el HTML
+Modal -> la ventana emergente que aparece al hacer clic en agregar, comprar o vender
+
+<!DOCTYPE html>
+<html lang="___">
+<head>
+    <meta charset="utf-8" />
+    <title>___</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Botones de operaciones -->
+    <button id="___">___</button>
+    <button id="___">___</button>
+
+    <!-- Tabla de datos -->
+    <table>
+        <thead>
+            <tr>
+                <th colspan="___">___</th>
+            </tr>
+            <tr>
+                <th>___</th>
+                <th>___</th>
+            </tr>
+        </thead>
+        <tbody id="___">
+            <!-- filas dinámicas desde app.js -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="___">___</td>
+                <td id="___">___</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Modal -->
+    <div id="modal">
+        <div id="modalContenido">
+            <h2 id="modalTitulo"></h2>
+            <div id="modalFormulario"></div>
+            <button id="btnConfirmar">___</button>
+            <button id="btnCancelar">___</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+____________________________________________________________________________________________________
+____________________________________________app.js__________________________________________________
+
+Se encarga de mostrar los datos, para ello al cargar la pagina, le pide al back la lista y muestra la tabla con la que interactua el usuario. 
+window.onload = ___;
+
+function mostrarStock() {
+    fetch('http://localhost:___/___')
+    .then(function(response) {
+        return response.___;
+    })
+    .then(function(datos) {
+        const tabla = document.getElementById('___');
+        tabla.innerHTML = '';
+        
+        datos.forEach(function(fila) {
+            tabla.innerHTML += '<tr>' +
+                '<td>' + fila.___ + '</td>' +
+                '<td>' + fila.___ + '</td>' +
+                '<td>' + fila.___ + '</td>' +
+                '<td>' + fila.___ + '</td>' +
+                '<td>' + fila.___ + '</td>' +
+            '</tr>';
+        });
+    })
+    .catch(function(err) {
+        console.error('___', err);
+    });
+}
