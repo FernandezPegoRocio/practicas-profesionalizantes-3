@@ -1,5 +1,3 @@
-window.onload = mostrarStock;
-
 function mostrarStock() {
     fetch('http://localhost:3000/stock')
     .then(function(response) {
@@ -8,7 +6,6 @@ function mostrarStock() {
     .then(function(datos) {
         const tabla = document.getElementById('tablaStock');
         tabla.innerHTML = '';
-        
         datos.forEach(function(fila) {
             tabla.innerHTML += '<tr>' +
                 '<td>' + fila.id + '</td>' +
@@ -25,22 +22,87 @@ function mostrarStock() {
     });
 }
 
-function main() {
-
-    function mostrarFormularioAgregar() { console.log("Mostrar Agregar"); }
-    function mostrarFormularioCompra() { console.log("Mostrar Compra"); }
-    function mostrarFormularioVenta() { console.log("Mostrar Venta"); }
-
-   document.getElementById('btnMostrarStock').onclick = mostrarStock;
-    document.getElementById('btnAgregarMaterial').onclick = mostrarFormularioAgregar;
-    document.getElementById('btnRegistrarCompra').onclick = mostrarFormularioCompra;
-    document.getElementById('btnRegistrarVenta').onclick = mostrarFormularioVenta;
-
-  
-    if (btnMostrarStock) btnMostrarStock.onclick = mostrarStock;
-    if (btnAgregarMaterial) btnAgregarMaterial.onclick = mostrarFormularioAgregar;
-    if (btnRegistrarCompra) btnRegistrarCompra.onclick = mostrarFormularioCompra;
-    if (btnRegistrarVenta) btnRegistrarVenta.onclick = mostrarFormularioVenta;
-  mostrarStock();
+function mostrarFormularioAgregar() {
+    document.getElementById('modalTitulo').innerHTML = 'Agregar Material';
+    document.getElementById('modalFormulario').innerHTML = `
+        <input id="inputMaterial" type="text" placeholder="Nombre del material" /><br>
+        <select id="inputMedida">
+            <option value="">Medida</option>
+            <option value="kg">Kilogramos</option>
+            <option value="unidad">Unidad</option>
+            <option value="m3">Metros cúbicos</option>
+        </select><br>
+        <input id="inputCantidad" type="number" placeholder="Cantidad" /><br>
+        <input id="inputPrecioUnitario" type="number" placeholder="Precio unitario" /><br>
+    `;
+    document.getElementById('modal').style.display = 'block';
 }
+
+function mostrarFormularioCompra() {
+    document.getElementById('modalTitulo').innerHTML = 'Compra de Material';
+    document.getElementById('modalFormulario').innerHTML = `
+        <input id="inputMaterial" type="text" placeholder="Nombre del material" /><br>
+        <input id="inputCantidad" type="number" placeholder="Cantidad comprada" /><br>
+    `;
+    document.getElementById('btnConfirmar').textContent = 'Registrar Compra';
+    document.getElementById('modal').style.display = 'block';
+}
+
+function mostrarFormularioVenta() {
+    document.getElementById('modalTitulo').innerHTML = 'Venta de Material';
+    document.getElementById('modalFormulario').innerHTML = `
+        <input id="inputMaterial" type="text" placeholder="Nombre del material" /><br>
+        <input id="inputCantidad" type="number" placeholder="Cantidad vendida" /><br>
+    `;
+    document.getElementById('btnConfirmar').textContent = 'Registrar Venta';
+    document.getElementById('modal').style.display = 'block';
+}
+
+function confirmar() {
+    const titulo = document.getElementById('modalTitulo').innerHTML;
+    if (titulo === 'Agregar Material') {
+        
+    } else if (titulo === 'Compra de Material') {
+       
+    } else if (titulo === 'Venta de Material') {
+       
+    }
+}
+
+function cerrarModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('modalFormulario').innerHTML = '';
+}
+
+if (titulo === 'Agregar Material') {
+    const material = document.getElementById('material').value;
+    const medida = document.getElementById('medida').value;
+    const cantidad = document.getElementById('cantidad').value;
+    const precio_unitario = document.getElementById('precio_unitario').value;
+    const precio_total = cantidad * precio_unitario;
+
+    fetch('http://localhost:3000/materiales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ material, medida, cantidad, precio_unitario, precio_total })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(datos) {
+        cerrarModal();
+        mostrarStock();
+    })
+    .catch(function(err) { console.error('Error:', err); });
+}
+
+function main() {
+    mostrarStock();
+    document.getElementById('btnVerStock').onclick = mostrarStock;
+    document.getElementById('btnAgregarMaterial').onclick = mostrarFormularioAgregar;
+    document.getElementById('btnCompra').onclick = mostrarFormularioCompra;
+    document.getElementById('btnVenta').onclick = mostrarFormularioVenta;
+    document.getElementById('btnConfirmar').onclick = confirmar;
+    document.getElementById('btnCancelar').onclick = cerrarModal;
+}
+
+
 window.onload = main;
