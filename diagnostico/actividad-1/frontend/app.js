@@ -1,8 +1,6 @@
 function mostrarStock() {
     fetch('http://localhost:3000/stock')
-    .then(function(response) {
-        return response.json();
-    })
+    .then(function(response) { return response.json(); })
     .then(function(datos) {
         const tabla = document.getElementById('tablaStock');
         tabla.innerHTML = '';
@@ -17,9 +15,7 @@ function mostrarStock() {
             '</tr>';
         });
     })
-    .catch(function(err) {
-        console.error('Error al cargar el stock', err);
-    });
+    .catch(function(err) { console.error('Error al cargar el stock', err); });
 }
 
 function mostrarFormularioAgregar() {
@@ -58,40 +54,56 @@ function mostrarFormularioVenta() {
     document.getElementById('modal').style.display = 'block';
 }
 
-function confirmar() {
-    const titulo = document.getElementById('modalTitulo').innerHTML;
-    if (titulo === 'Agregar Material') {
-        
-    } else if (titulo === 'Compra de Material') {
-       
-    } else if (titulo === 'Venta de Material') {
-       
-    }
-}
-
 function cerrarModal() {
     document.getElementById('modal').style.display = 'none';
     document.getElementById('modalFormulario').innerHTML = '';
 }
 
-if (titulo === 'Agregar Material') {
-    const material = document.getElementById('material').value;
-    const medida = document.getElementById('medida').value;
-    const cantidad = document.getElementById('cantidad').value;
-    const precio_unitario = document.getElementById('precio_unitario').value;
-    const precio_total = cantidad * precio_unitario;
+function confirmar() {
+    const titulo = document.getElementById('modalTitulo').innerHTML;
 
-    fetch('http://localhost:3000/materiales', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ material, medida, cantidad, precio_unitario, precio_total })
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(datos) {
-        cerrarModal();
-        mostrarStock();
-    })
-    .catch(function(err) { console.error('Error:', err); });
+    if (titulo === 'Agregar Material') {
+        const material = document.getElementById('inputMaterial').value;
+        const medida = document.getElementById('inputMedida').value;
+        const cantidad = document.getElementById('inputCantidad').value;
+        const precio_unitario = document.getElementById('inputPrecioUnitario').value;
+        const precio_total = cantidad * precio_unitario;
+
+        fetch('http://localhost:3000/material', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ material, medida, cantidad, precio_unitario, precio_total })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function() { cerrarModal(); mostrarStock(); })
+        .catch(function(err) { console.error('Error:', err); });
+
+    } else if (titulo === 'Compra de Material') {
+        const material = document.getElementById('inputMaterial').value;
+        const cantidad = document.getElementById('inputCantidad').value;
+
+        fetch('http://localhost:3000/compra', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ material, cantidad })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function() { cerrarModal(); mostrarStock(); })
+        .catch(function(err) { console.error('Error:', err); });
+
+    } else if (titulo === 'Venta de Material') {
+        const material = document.getElementById('inputMaterial').value;
+        const cantidad = document.getElementById('inputCantidad').value;
+
+        fetch('http://localhost:3000/venta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ material, cantidad })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function() { cerrarModal(); mostrarStock(); })
+        .catch(function(err) { console.error('Error:', err); });
+    }
 }
 
 function main() {
@@ -103,6 +115,5 @@ function main() {
     document.getElementById('btnConfirmar').onclick = confirmar;
     document.getElementById('btnCancelar').onclick = cerrarModal;
 }
-
 
 window.onload = main;
