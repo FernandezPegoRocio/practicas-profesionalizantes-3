@@ -1,9 +1,10 @@
 const express = require('express');
+const cors = require('cors');
 const pool = require('./database');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
-
 
 app.get('/stock', function(req, res) {
     pool.query('SELECT * FROM stock', function(err, resultados) {
@@ -13,7 +14,6 @@ app.get('/stock', function(req, res) {
         res.json(resultados);
     });
 });
-
 
 app.post('/material', function(req, res) {
     const { material, medida, cantidad, precio_unitario, precio_total } = req.body;
@@ -29,7 +29,6 @@ app.post('/material', function(req, res) {
     );
 });
 
-
 app.post('/compra', function(req, res) {
     const { material, cantidad } = req.body;
     pool.query(
@@ -44,16 +43,13 @@ app.post('/compra', function(req, res) {
     );
 });
 
-
 app.post('/venta', function(req, res) {
     const { material, cantidad } = req.body;
     pool.query('SELECT cantidad FROM stock WHERE material = ?', [material], function(err, resultados) {
         if (err) return res.status(500).json({ error: err.message });
-
         if (resultados[0].cantidad < cantidad) {
             return res.status(400).json({ error: 'No hay stock de este material' });
         }
-
         pool.query(
             'UPDATE stock SET cantidad = cantidad - ? WHERE material = ?',
             [cantidad, material],
