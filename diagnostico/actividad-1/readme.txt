@@ -30,7 +30,7 @@ Resolución
 
 5. Cuando se abre la aplicación cliente, la interfaz gráfica deberá mostrar una tabla o listado de los materiales/objetos en el stock con su nombre y cantidad correspondiente. Como así también las operaciones mínimas que usted encuentre en la consigna.
 
-
+node.js - express - MYSQL - httml/css/js
     __________________________________________________________________
                            PLANTA DE RECICLAJE
     __________________________________________________________________
@@ -94,16 +94,26 @@ precioUnitario -> NOT NULL MAYOR A CERO
 ____________________________________________________________________________________________________
 _______________________________________database.js__________________________________________________
 //Necesitamos importar el idioma: 
-const mysql2 = require('mysql2');
-
 //Importamos el paquete mysql2, estructura base:
 
-const pool = ___.___ ({
-    host: '___',
-    user: '___',
+const mysql2 = require('mysql2');
+
+const pool = mysql2.createPool({
+    host:     '___',
+    user:     '___',
     password: '___',
     database: '___'
 });
+
+pool.query(`CREATE TABLE IF NOT EXISTS ___ (...)`,
+    (err) => {
+        if (err) console.error('Error al crear la tabla:', err);
+        else     console.log('Tabla ___ lista');
+    }
+);
+
+module.exports = pool;
+
 
 //Creamos un pool de conexiones a tu base de datos MySQ
 pool.query(CREATE TABLE con toda la informacion)
@@ -122,33 +132,34 @@ _________________________________________server.js______________________________
 express -> permite crear el servidor y las rutas
 pool -> importa la conexión a la base de datos desde database.js
 app.use(express.json()) -> entiende los datos en formato JSON que llegan desde el frontend. 
-GET -> recupera info
-POST -> envía datos
+GET -> recupera info de la base de datos
+POST -> envía datos al servidos para insertar y/o modifical
 app.listen(3000) → arranca el servidor en el puerto 3000
+cors	Permite que el frontend se conecte al backend desde el navegador
+? en queries	Placeholder seguro contra SQL Injection — mysql2 sanitiza el valor
+
 
 -----------estructura base que sirve para proyectos:
-// Importamos el paquete para crear el servidor
-const ___ = require('express');
+const express = require('express');
+const cors    = require('cors');
+const pool    = require('./___');
 
-// Importamos la conexión a la base de datos
-const ___ = require('./___');
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// Creamos la aplicación
-const app = ___();
-app.use(___.json());
-
-// Ruta GET - obtener datos
+// GET — obtener datos
 app.get('/___', function(req, res) {
-    ___.query('SELECT * FROM ___', function(err, resultados) {
+    pool.query('SELECT * FROM ___', function(err, resultados) {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(___);
+        res.json(resultados);
     });
 });
 
-// Ruta POST - insertar datos
+// POST — insertar datos
 app.post('/___', function(req, res) {
     const { ___ } = req.body;
-    ___.query(
+    pool.query(
         'INSERT INTO ___ (___) VALUES (?)',
         [___],
         function(err, resultado) {
@@ -158,13 +169,12 @@ app.post('/___', function(req, res) {
     );
 });
 
-// Ruta PUT - modificar datos
+// PUT — modificar datos
 app.put('/___', function(req, res) { ... });
 
-// Ruta DELETE - eliminar datos
+// DELETE — eliminar datos
 app.delete('/___', function(req, res) { ... });
 
-// Iniciamos el servidor en el puerto ___
 app.listen(___, () => { console.log('___'); });
 
 ____________________________________________________________________________________________________
@@ -177,80 +187,203 @@ Botones -> los cuatro botones superiores que el usuario usa para interactuar. Ca
 Tabla -> muestra el stock. El encabezado está escrito en el HTML
 Modal -> la ventana emergente que aparece al hacer clic en agregar, comprar o vender
 
+-----------estructura base que sirve para proyectos:
+
 <!DOCTYPE html>
-<html lang="___">
+<html lang='___'>
 <head>
-    <meta charset="utf-8" />
+    <meta charset='utf-8' />
     <title>___</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel='stylesheet' href='style.css'>
 </head>
 <body>
 
     <!-- Botones de operaciones -->
-    <button id="___">___</button>
-    <button id="___">___</button>
+    <button id='___'>___</button>
+    <button id='___'>___</button>
 
     <!-- Tabla de datos -->
     <table>
         <thead>
-            <tr>
-                <th colspan="___">___</th>
-            </tr>
+            <tr><th colspan='___'>___</th></tr>
             <tr>
                 <th>___</th>
                 <th>___</th>
             </tr>
         </thead>
-        <tbody id="___">
+        <tbody id='___'>
             <!-- filas dinámicas desde app.js -->
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="___">___</td>
-                <td id="___">___</td>
+                <td colspan='___'>___</td>
+                <td id='___'>___</td>
             </tr>
         </tfoot>
     </table>
 
     <!-- Modal -->
-    <div id="modal">
-        <div id="modalContenido">
-            <h2 id="modalTitulo"></h2>
-            <div id="modalFormulario"></div>
-            <button id="btnConfirmar">___</button>
-            <button id="btnCancelar">___</button>
+    <div id='modal'>
+        <div id='modalContenido'>
+            <h2 id='modalTitulo'></h2>
+            <div id='modalFormulario'></div>
+            <button id='btnConfirmar'>___</button>
+            <button id='btnCancelar'>___</button>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src='app.js'></script>
 </body>
 </html>
+
 ____________________________________________________________________________________________________
 ____________________________________________app.js__________________________________________________
 
 Se encarga de mostrar los datos, para ello al cargar la pagina, le pide al back la lista y muestra la tabla con la que interactua el usuario. 
+
+-----------estructura base que sirve para proyectos:
 window.onload = ___;
 
 function mostrarStock() {
     fetch('http://localhost:___/___')
-    .then(function(response) {
-        return response.___;
-    })
+    .then(function(response) { return response.json(); })
     .then(function(datos) {
         const tabla = document.getElementById('___');
         tabla.innerHTML = '';
-        
         datos.forEach(function(fila) {
             tabla.innerHTML += '<tr>' +
-                '<td>' + fila.___ + '</td>' +
-                '<td>' + fila.___ + '</td>' +
-                '<td>' + fila.___ + '</td>' +
                 '<td>' + fila.___ + '</td>' +
                 '<td>' + fila.___ + '</td>' +
             '</tr>';
         });
     })
-    .catch(function(err) {
-        console.error('___', err);
-    });
+    .catch(function(err) { console.error('___', err); });
 }
+
+----Funciones del modal----
+
+Cada botón abre el modal con el formulario correspondiente. El título del modal se usa luego para identificar qué operación confirmar.
+-----------estructura base que sirve para proyectos:
+
+function mostrarFormulario___() {
+    document.getElementById('modalTitulo').innerHTML = '___';
+    document.getElementById('modalFormulario').innerHTML = `
+        <input id='input___' type='text'   placeholder='___' /><br>
+        <input id='input___' type='number' placeholder='___' /><br>
+    `;
+    document.getElementById('modal').style.display = 'block';
+}
+
+----Funciones del cerrarModal----
+function cerrarModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('modalFormulario').innerHTML = '';
+}
+
+----Función confirmar — detecta qué formulario está abierto----
+function confirmar() {
+    const titulo = document.getElementById('modalTitulo').innerHTML;
+
+    if (titulo === '___') {
+        const ___ = document.getElementById('input___').value;
+        fetch('http://localhost:3000/___', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ___ })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function() { cerrarModal(); mostrarStock(); })
+        .catch(function(err) { console.error('Error:', err); });
+
+    } else if (titulo === '___') {
+        // segunda operación
+    } else if (titulo === '___') {
+        // tercera operación
+    }
+}
+
+----Función main — conecta los botones----
+function main() {
+    mostrarStock();
+    document.getElementById('___').onclick = mostrarStock;
+    document.getElementById('___').onclick = mostrarFormulario___;
+    document.getElementById('btnConfirmar').onclick = confirmar;
+    document.getElementById('btnCancelar').onclick = cerrarModal;
+}
+
+window.onload = main;
+
+____________________________________________________________________________________________________
+____________________________________________server.js__________________________________________________
+
+Archivo de estilos separado del HTML. 
+Paleta usada: blanco, gris, negro y azul (#2A69D5 / #2857A9)
+
+-----------estructura base que sirve para proyectos:
+/* Reset básico */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: ___, sans-serif;
+    background-color: ___;
+    color: ___;
+    padding: ___;
+}
+
+button { background-color: ___; color: ___; border: none;
+         padding: ___ ___; margin: ___ ___;
+         border-radius: ___; cursor: pointer; }
+button:hover { background-color: ___; }
+
+table  { width: 100%; border-collapse: collapse; margin-top: ___; }
+
+thead tr:first-child th { background-color: ___; color: ___; padding: ___; }
+thead tr:last-child  th { background-color: ___; color: ___; padding: ___; }
+
+tbody tr:nth-child(even) { background-color: ___; }
+tbody tr:hover           { background-color: ___; }
+tbody td { padding: ___; text-align: ___; border-bottom: 1px solid ___; }
+
+tfoot td { padding: ___; font-weight: bold; text-align: right;
+           background-color: ___; color: ___; }
+
+/* Modal fondo */
+#modal { display: none; position: fixed; top: 0; left: 0;
+         width: 100%; height: 100%; background-color: ___; }
+
+/* Modal contenido */
+#modalContenido { background-color: ___; margin: ___% auto;
+                  padding: ___; width: ___; border-radius: ___; }
+
+#modalContenido h2      { color: ___; margin-bottom: ___; }
+#modalContenido input,
+#modalContenido select  { width: 100%; padding: ___; margin: ___ 0;
+                          border: 1px solid ___; border-radius: ___; }
+
+#btnCancelar       { background-color: ___; }
+#btnCancelar:hover { background-color: ___; }
+
+______________________________________________________________________________________________________
+____________________________________________Arranque__________________________________________________
+
+Antes de correr el servidor: 
+-> MySQL debe estar corriendo (UniServerZ) 
+-> la base de datos debe existir
+
+// Crear archivo crear_base.sql con:
+CREATE DATABASE IF NOT EXISTS `nombre-base` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+// Ejecutar desde terminal:
+"C:\ruta\a\mysql.exe" -u root -p < crear_base.sql
+
+cd backend
+npm install        // solo la primera vez
+node server.js     // arranca el servidor
+
+// Salida esperada:
+// Servidor corriendo en puerto 3000
+// Tabla stock lista
+
+abrir pagina index.html
+
+
