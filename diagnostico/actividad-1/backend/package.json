@@ -4,6 +4,7 @@
   "main": "server.js",
   "dependencies": {
     "express": "*",
-    "mysql2": "*"
+    "mysql2": "*",
+    "cors": "*"
   }
 }
