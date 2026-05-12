@@ -1,8 +1,10 @@
 
 ----------------------------------------------------------sdk_v2----------------------------------------------------------------------
+
 Módulo de autenticación y gestión de permisos — Node.js puro
 Base: sdk/v1
 _____________________________________________________________IMPORTANTE______________________________________________________________
+
 GET    --> Devuelve la vista principal (HTML) en la ruta /
         --> En la ruta /checkAccess verifica si el usuario tiene permiso sobre un path (requiere token)
         --> En la ruta /showMessage muestra un mensaje en el servidor
@@ -27,6 +29,7 @@ src/
 package.json
 .gitignore   : excluye node_modules y db.sqlite3
 _______________________________________________________________AJUSTES________________________________________________________________
+
 --- src/login.js fue reescrito para consultar la base de datos con parámetros preparados
     en lugar de comparar contra credenciales hardcodeadas.
     La firma de la función se mantuvo igual a v1.
@@ -55,6 +58,7 @@ _______________________________________________________________AJUSTES__________
     asigna cada usuario a un grupo y define los accesos correspondientes por grupo.
     Se ejecuta una única vez antes de iniciar el servidor.
 _______________________________________________________________EJECUCIÓN______________________________________________________________
+
 1. Abrir la terminal y navegar hasta la carpeta del proyecto:
       cd ruta/sdk/v2
 2. (Opcional) Ejecutar el seed para cargar datos de prueba:
