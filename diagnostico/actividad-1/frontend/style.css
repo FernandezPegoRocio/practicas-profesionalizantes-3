@@ -1,0 +1,112 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Calibri, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    padding: 20px;
+}
+
+/* Botones superiores */
+button {
+    background-color: #2A69D5;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #1e5bb8;
+}
+
+/* Tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+thead tr:first-child th {
+    background-color: #2A69D5;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+}
+
+thead tr:last-child th {
+    background-color: #2857A9;
+    color: white;
+    padding: 10px;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+    background-color: #e6f0ff;
+}
+
+tbody td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+tfoot td {
+    padding: 12px;
+    font-weight: bold;
+    text-align: right;
+    background-color: #e9ecef;
+    color: #333;
+}
+
+/* Modal fondo */
+#modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+/* Modal contenido */
+#modalContenido {
+    background-color: white;
+    margin: 5% auto;
+    padding: 25px;
+    width: 420px;
+    border-radius: 8px;
+}
+
+#modalContenido h2 {
+    color: #2A69D5;
+    margin-bottom: 20px;
+}
+
+#modalContenido input,
+#modalContenido select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#btnCancelar {
+    background-color: #6c757d;
+}
+
+#btnCancelar:hover {
+    background-color: #5a6268;
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+    </head>
+    <body>
+        <h1>Registro de usuarios</h1>
+        <form action="/register" method="post">
+            <label>Usuario:</label>
+            <input name="username" required><br>
+            <label>Password:</label>
+            <input type="password" name="password" required><br>
+            <button type="submit">Crear usuario</button>
+        </form>
+
+        <hr>
+
+        <h1>Iniciar sesión</h1>
+        <form id="form-login">
+            <label>Usuario:</label>
+            <input id="l-username" required><br>
+            <label>Password:</label>
+            <input id="l-password" type="password" required><br>
+            <button type="submit">Ingresar</button>
+        </form>
+        <p id="login-result"></p>
+
+        <hr>
+
+        <h1>Verificar permiso</h1>
+        <form id="form-check">
+            <label>Path:</label>
+            <input id="chk-path" placeholder="/register" required><br>
+            <button type="submit">Verificar</button>
+        </form>
+        <p id="check-result"></p>
+
+        <script>
+            let token = null;
+
+            document.getElementById('form-login').addEventListener('submit', async function(e)
+            {
+                e.preventDefault();
+
+                const body = new URLSearchParams({
+                    username: document.getElementById('l-username').value,
+                    password: document.getElementById('l-password').value
+                });
+
+                const res  = await fetch('/login', { method: 'POST', body });
+                const data = await res.json();
+
+                if (data.status)
+                {
+                    token = data.token;
+                    document.getElementById('login-result').textContent =
+                        'Sesión iniciada: ' + data.result.username;
+                }
+                else
+                {
+                    document.getElementById('login-result').textContent =
+                        'Error: ' + data.description;
+                }
+            });
+
+            document.getElementById('form-check').addEventListener('submit', async function(e)
+            {
+                e.preventDefault();
+
+                const path = document.getElementById('chk-path').value;
+                const res  = await fetch('/checkAccess?path=' + encodeURIComponent(path), {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+
+                if (data.error)
+                {
+                    document.getElementById('check-result').textContent = 'Error: ' + data.error;
+                    return;
+                }
+
+                document.getElementById('check-result').textContent =
+                    data.user + (data.allowed ? ' tiene' : ' NO tiene') + ' permiso sobre ' + data.path;
+            });
+        </script>
+    </body>
+</html>
