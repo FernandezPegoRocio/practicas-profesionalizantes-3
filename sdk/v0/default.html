@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+    </head>
+    <body>
+        <h1>Registro de usuarios</h1>
+        <form action="/register" method="post">
+            <label>Usuario:</label>
+            <input name="username" required><br>
+            <label>Password:</label>
+            <input type="password" name="password" required><br>
+            <button type="submit">Crear usuario</button>
+        </form>
+
+        <hr>
+
+        <h1>Iniciar sesión</h1>
+        <form id="form-login">
+            <label>Usuario:</label>
+            <input id="l-username" required><br>
+            <label>Password:</label>
+            <input id="l-password" type="password" required><br>
+            <button type="submit">Ingresar</button>
+        </form>
+        <p id="login-result"></p>
+
+        <hr>
+
+        <h1>Autorizador</h1>
+        <p>Usuario activo: <span id="active-user">-</span></p>
+
+        <button id="btn-log">Ejecutar /log</button>
+        <button id="btn-sayhello">Ejecutar /sayHello</button>
+
+        <p id="authorize-result"></p>
+
+        <button id="btnMsg">Mostrar mensaje en el servidor</button>
+
+        <script>
+
+        let logged_username = null;
+
+        document.getElementById('form-login').addEventListener('submit', async function(e)
+        {
+            e.preventDefault();
+
+            const username = document.getElementById('l-username').value;
+            const password = document.getElementById('l-password').value;
+
+            const res  = await fetch('/login',
+            {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+
+            if (data.session)
+            {
+                logged_username = username;
+                document.getElementById('active-user').textContent  = username;
+                document.getElementById('login-result').textContent = 'Sesión iniciada: ' + username;
+            }
+            else
+            {
+                document.getElementById('login-result').textContent = 'Usuario o contraseña incorrectos.';
+            }
+        });
+
+        async function check_authorize(path)
+        {
+            if (!logged_username)
+            {
+                document.getElementById('authorize-result').textContent = 'Primero iniciá sesión.';
+                return;
+            }
+
+            const res  = await fetch('/authorize?username=' + encodeURIComponent(logged_username)
+                                   + '&path='     + encodeURIComponent(path));
+            const data = await res.json();
+
+            if (data.error)
+            {
+                document.getElementById('authorize-result').textContent = 'Error: ' + data.error;
+                return;
+            }
+
+            document.getElementById('authorize-result').textContent =
+                logged_username + (data.allowed ? ' tiene permiso sobre ' : ' NO tiene permiso sobre ') + path;
+        }
+
+        document.getElementById('btn-log').onclick      = () => check_authorize('/log');
+        document.getElementById('btn-sayhello').onclick = () => check_authorize('/sayHello');
+
+        function onBtnMsgOnClick()
+        {
+            console.log('Enviando petición al servidor...');
+            fetch('/showMessage');
+        }
+
+        function main()
+        {
+            btnMsg.onclick = onBtnMsgOnClick;
+        }
+
+        window.onload = main;
+
+        </script>
+    </body>
+</html>
