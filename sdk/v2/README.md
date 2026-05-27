@@ -79,3 +79,23 @@ _______________________________________________________________EJECUCIÓN_______
       usuario: ana     contraseña: ana_pass2024
    El servidor responde con un token de sesión, por ejemplo:
       {"status":true,"result":{"id":1,"username":"ana"},"token":"a3f9z2x1..."}
+
+
+   ______________________________CORRECCIONES APLICADAS SEGÚN DEVOLUCIÓN DEL DOCENTE_________________________________________
+   
+Tres puntos a corregir sobre la versión anterior:
+
+--- Corregir: ABM de usuarios, grupos, miembros de grupo y endpoints no implementados.
+    Corrección: se incorporaron src/user.js, src/group.js, src/endpoint.js y src/members.js
+    con alta, baja, modificación y lectura para cada entidad, y sus rutas correspondientes
+    en main.mjs.
+
+--- Corregir: mecanismo de token (Authorization: Bearer) no visto en clase, genera
+    desconexión con el desarrollo trabajado en v0 y v3.
+    Corrección: se reemplazó por el mecanismo de usuario/contraseña trabajado en clase.
+    Las sesiones se identifican por username como clave del Map en memoria.
+
+--- Corregir: parámetro db presente en todas las funciones de los módulos, produciendo
+    acoplamiento entre componentes.
+    Corrección: se creó src/database.js que construye la conexión y exporta la instancia db.
+    Cada módulo la importa directamente, eliminando el parámetro de todas las funciones.
