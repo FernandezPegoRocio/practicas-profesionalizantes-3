@@ -1,4 +1,6 @@
-export function login(db, input)
+import { db } from './database.js';
+
+export function login(input)
 {
     const stmt = db.prepare(
         'SELECT id, username FROM user WHERE username = ? AND password = ?'

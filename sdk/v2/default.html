@@ -37,52 +37,57 @@
         <p id="check-result"></p>
 
         <script>
-            let token = null;
 
-            document.getElementById('form-login').addEventListener('submit', async function(e)
-            {
-                e.preventDefault();
+        let logged_username = null;
 
-                const body = new URLSearchParams({
-                    username: document.getElementById('l-username').value,
-                    password: document.getElementById('l-password').value
-                });
+        document.getElementById('form-login').addEventListener('submit', async function(e)
+        {
+            e.preventDefault();
 
-                const res  = await fetch('/login', { method: 'POST', body });
-                const data = await res.json();
-
-                if (data.status)
-                {
-                    token = data.token;
-                    document.getElementById('login-result').textContent =
-                        'Sesión iniciada: ' + data.result.username;
-                }
-                else
-                {
-                    document.getElementById('login-result').textContent =
-                        'Error: ' + data.description;
-                }
+            const body = new URLSearchParams({
+                username: document.getElementById('l-username').value,
+                password: document.getElementById('l-password').value
             });
 
-            document.getElementById('form-check').addEventListener('submit', async function(e)
+            const res  = await fetch('/login', { method: 'POST', body });
+            const data = await res.json();
+
+            if (data.status)
             {
-                e.preventDefault();
+                logged_username = data.result.username;
+                document.getElementById('login-result').textContent = 'Sesión iniciada: ' + logged_username;
+            }
+            else
+            {
+                document.getElementById('login-result').textContent = 'Error: ' + data.description;
+            }
+        });
 
-                const path = document.getElementById('chk-path').value;
-                const res  = await fetch('/checkAccess?path=' + encodeURIComponent(path), {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data = await res.json();
+        document.getElementById('form-check').addEventListener('submit', async function(e)
+        {
+            e.preventDefault();
 
-                if (data.error)
-                {
-                    document.getElementById('check-result').textContent = 'Error: ' + data.error;
-                    return;
-                }
+            if (!logged_username)
+            {
+                document.getElementById('check-result').textContent = 'Primero iniciá sesión.';
+                return;
+            }
 
-                document.getElementById('check-result').textContent =
-                    data.user + (data.allowed ? ' tiene' : ' NO tiene') + ' permiso sobre ' + data.path;
-            });
+            const path = document.getElementById('chk-path').value;
+            const res  = await fetch('/checkAccess?username=' + encodeURIComponent(logged_username)
+                                   + '&path=' + encodeURIComponent(path));
+            const data = await res.json();
+
+            if (data.error)
+            {
+                document.getElementById('check-result').textContent = 'Error: ' + data.error;
+                return;
+            }
+
+            document.getElementById('check-result').textContent =
+                data.user + (data.allowed ? ' tiene permiso sobre ' : ' NO tiene permiso sobre ') + data.path;
+        });
+
         </script>
     </body>
 </html>

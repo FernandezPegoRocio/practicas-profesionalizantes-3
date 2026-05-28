@@ -11,7 +11,6 @@ function load_config()
 const config = load_config();
 const db     = new DatabaseSync(resolve(config.database.path));
 
-// Crear tablas si no existen
 db.exec(`
     CREATE TABLE IF NOT EXISTS user (
         id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,7 +39,6 @@ db.exec(`
     );
 `);
 
-// Limpiar datos anteriores
 db.exec(`
     DELETE FROM access;
     DELETE FROM members;
@@ -49,7 +47,6 @@ db.exec(`
     DELETE FROM user;
 `);
 
-// Usuarios
 const usuarios = [
     'ana','bruno','carla','diego','elena','fabian','gabriela','hector',
     'irene','jorge','karina','lucas','marta','nicolas','olivia','pablo',
@@ -60,17 +57,14 @@ const usuarios = [
 const insert_user = db.prepare('INSERT INTO user (username, password) VALUES (?, ?)');
 for (const u of usuarios) insert_user.run(u, u + '_pass2024');
 
-// Grupos
 const grupos = ['admin', 'editor', 'viewer'];
 const insert_group = db.prepare('INSERT OR IGNORE INTO "group" (name) VALUES (?)');
 for (const g of grupos) insert_group.run(g);
 
-// Endpoints
 const paths = ['/', '/login', '/logout', '/register', '/checkAccess', '/showMessage'];
 const insert_ep = db.prepare('INSERT OR IGNORE INTO endpoint (path) VALUES (?)');
 for (const p of paths) insert_ep.run(p);
 
-// Membresías
 const all_users  = db.prepare('SELECT id FROM user').all();
 const all_groups = db.prepare('SELECT id FROM "group"').all();
 const insert_member = db.prepare('INSERT INTO members (id_user, id_group) VALUES (?, ?)');
@@ -80,11 +74,9 @@ for (const u of all_users)
     insert_member.run(u.id, g.id);
 }
 
-// Accesos por grupo
 const all_eps   = db.prepare('SELECT id, path FROM endpoint').all();
-const ep        = (p) => all_eps.find(e => e.path === p)?.id;
+const ep        = function(p) { return all_eps.find(function(e) { return e.path === p; })?.id; };
 const get_group = db.prepare('SELECT id FROM "group" WHERE name = ?');
-
 const insert_access = db.prepare('INSERT INTO access (id_group, id_endpoint) VALUES (?, ?)');
 
 const permisos =
@@ -100,11 +92,10 @@ for (const [name, rutas] of Object.entries(permisos))
     for (const r of rutas) insert_access.run(g.id, ep(r));
 }
 
-const count = t => db.prepare(`SELECT COUNT(*) AS n FROM "${t}"`).get().n;
+const count = function(t) { return db.prepare('SELECT COUNT(*) AS n FROM "' + t + '"').get().n; };
 console.log('Seed completado:');
 console.log('  Usuarios :', count('user'));
 console.log('  Grupos   :', count('group'));
 console.log('  Endpoints:', count('endpoint'));
 console.log('  Miembros :', count('members'));
 console.log('  Accesos  :', count('access'));
-

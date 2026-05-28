@@ -1,24 +1,33 @@
-const sessions = new Map();   // token ---> { id_user, username }
+import { db } from './database.js';
+
+const sessions = new Map();   // username → { id_user, username, status }
 
 export function session_create(id_user, username)
 {
-    const token = Math.random().toString(36).slice(2)
-                + Math.random().toString(36).slice(2);
-    sessions.set(token, { id_user, username });
-    return token;
+    const existing = sessions.get(username);
+
+    if (existing == null)
+    {
+        sessions.set(username, { id_user, username, status: 'enabled' });
+    }
+    else
+    {
+        existing.status = 'enabled';
+    }
 }
 
-export function session_get(token)
+export function session_get(username)
 {
-    return sessions.get(token) ?? null;
+    return sessions.get(username) ?? null;
 }
 
-export function session_destroy(token)
+export function session_destroy(username)
 {
-    return sessions.delete(token);
+    const session = sessions.get(username);
+    if (session) session.status = 'disabled';
 }
 
-export function has_permission(db, id_user, path)
+export function has_permission(id_user, path)
 {
     const stmt = db.prepare(`
         SELECT COUNT(*) AS cnt
@@ -30,12 +39,4 @@ export function has_permission(db, id_user, path)
     `);
     const row = stmt.get(id_user, path);
     return row.cnt > 0;
-}
-
-export function token_from_request(request)
-{
-    const header = request.headers['authorization'] ?? '';
-    const parts  = header.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') return parts[1];
-    return null;
 }

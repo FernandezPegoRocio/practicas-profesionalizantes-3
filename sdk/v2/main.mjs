@@ -1,14 +1,22 @@
-import { createServer }  from 'node:http';
-import { URL }           from 'node:url';
-import { readFileSync }  from 'node:fs';
-import { DatabaseSync }  from 'node:sqlite';
-import { resolve }       from 'node:path';
+import { createServer } from 'node:http';
+import { URL }          from 'node:url';
+import { readFileSync } from 'node:fs';
 
-import { login }    from './src/login.js';
-import { register } from './src/register.js';
-import { session_create, session_destroy,
-         session_get, has_permission,
-         token_from_request }             from './src/auth.js';
+import './src/database.js';
+
+import { login }                                          from './src/login.js';
+import { register }                                       from './src/register.js';
+import { session_create, session_get,
+         session_destroy, has_permission }                from './src/auth.js';
+import { user_create, user_read_all,
+         user_read_one, user_update, user_delete }        from './src/user.js';
+import { group_create, group_read_all,
+         group_read_one, group_update, group_delete }     from './src/group.js';
+import { endpoint_create, endpoint_read_all,
+         endpoint_read_one, endpoint_update,
+         endpoint_delete }                                from './src/endpoint.js';
+import { member_create, member_read_all,
+         member_delete }                                  from './src/members.js';
 
 function default_config()
 {
@@ -41,42 +49,21 @@ function load_config()
 
 const config = load_config();
 
-function connect_db(path)
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function json_ok(response, data)
 {
-    const db = new DatabaseSync(resolve(path));
-
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS user (
-            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS "group" (
-            id   INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS members (
-            id_user  INTEGER NOT NULL,
-            id_group INTEGER NOT NULL,
-            FOREIGN KEY (id_user)  REFERENCES user(id),
-            FOREIGN KEY (id_group) REFERENCES "group"(id)
-        );
-        CREATE TABLE IF NOT EXISTS endpoint (
-            id   INTEGER PRIMARY KEY AUTOINCREMENT,
-            path TEXT NOT NULL UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS access (
-            id_group    INTEGER NOT NULL,
-            id_endpoint INTEGER NOT NULL,
-            FOREIGN KEY (id_group)    REFERENCES "group"(id),
-            FOREIGN KEY (id_endpoint) REFERENCES endpoint(id)
-        );
-    `);
-
-    return db;
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify(data));
 }
 
-const db = connect_db(config.database.path);
+function json_err(response, code, message)
+{
+    response.writeHead(code, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ error: message }));
+}
+
+// ─── Manejadores ──────────────────────────────────────────────────────────────
 
 function default_handler(request, response)
 {
@@ -93,105 +80,242 @@ function default_handler(request, response)
     }
 }
 
-async function login_handler(request, response)
+function login_handler(request, response)
 {
-    let body = '';
-    for await (const chunk of request) body += chunk;
-
-    const params = new URLSearchParams(body);
-    const input  =
+    if (request.method !== 'POST')
     {
-        username: params.get('username'),
-        password: params.get('password')
-    };
-
-    const output = login(db, input);
-
-    if (!output.status)
-    {
-        response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify(output));
+        json_err(response, 405, 'Método no permitido.');
         return;
     }
 
-    const token = session_create(output.result.id, output.result.username);
+    let body = '';
 
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ ...output, token }));
+    request.on('data', function(chunk)
+    {
+        body += chunk.toString();
+    });
+
+    request.on('end', function()
+    {
+        const params = new URLSearchParams(body);
+        const input  =
+        {
+            username: params.get('username'),
+            password: params.get('password')
+        };
+
+        const output = login(input);
+
+        if (!output.status)
+        {
+            json_ok(response, output);
+            return;
+        }
+
+        session_create(output.result.id, output.result.username);
+        json_ok(response, output);
+    });
 }
 
-async function logout_handler(request, response)
+function logout_handler(request, response)
 {
-    const token = token_from_request(request);
-    if (token) session_destroy(token);
+    if (request.method !== 'POST')
+    {
+        json_err(response, 405, 'Método no permitido.');
+        return;
+    }
 
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ status: true }));
+    let body = '';
+
+    request.on('data', function(chunk)
+    {
+        body += chunk.toString();
+    });
+
+    request.on('end', function()
+    {
+        const params   = new URLSearchParams(body);
+        const username = params.get('username');
+        session_destroy(username);
+        json_ok(response, { status: true });
+    });
 }
 
-async function register_handler(request, response)
+function register_handler(request, response)
 {
-    if (request.method === 'POST')
+    if (request.method !== 'POST')
+    {
+        json_err(response, 405, 'Método no permitido.');
+        return;
+    }
+
+    let body = '';
+
+    request.on('data', function(chunk)
+    {
+        body += chunk.toString();
+    });
+
+    request.on('end', function()
     {
         try
         {
-            let body = '';
-            for await (const chunk of request) body += chunk;
-
             const params = new URLSearchParams(body);
-            const input  =
-            {
-                username: params.get('username'),
-                password: params.get('password')
-            };
-
-            const output = register(db, input.username, input.password);
-            response.writeHead(200, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify(output));
+            const output = register(params.get('username'), params.get('password'));
+            json_ok(response, output);
         }
         catch (err)
         {
-            response.writeHead(500);
-            response.end(JSON.stringify({ error: err.message }));
+            json_err(response, 500, err.message);
         }
-    }
+    });
 }
 
 function check_access_handler(request, response)
 {
-    const token = token_from_request(request);
+    const url      = new URL(request.url, 'http://' + config.server.ip);
+    const username = url.searchParams.get('username');
+    const path     = url.searchParams.get('path');
 
-    if (!token)
+    if (!username || !path)
     {
-        response.writeHead(401, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ error: 'Token requerido' }));
+        json_err(response, 400, 'Parámetros username y path requeridos.');
         return;
     }
 
-    const session = session_get(token);
+    const session = session_get(username);
 
-    if (!session)
+    if (!session || session.status !== 'enabled')
     {
-        response.writeHead(401, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ error: 'Sesión inválida' }));
+        json_err(response, 401, 'Sesión inactiva o inexistente.');
         return;
     }
 
-    const url  = new URL(request.url, 'http://' + config.server.ip);
-    const path = url.searchParams.get('path');
+    const allowed = has_permission(session.id_user, path);
+    json_ok(response, { user: username, path, allowed });
+}
 
-    const allowed = has_permission(db, session.id_user, path);
+// ─── ABM usuarios ─────────────────────────────────────────────────────────────
 
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ user: session.username, path, allowed }));
+function users_handler(request, response)
+{
+    if (request.method === 'GET')
+    {
+        const url = new URL(request.url, 'http://' + config.server.ip);
+        const id  = url.searchParams.get('id');
+        return json_ok(response, id ? user_read_one(id) : user_read_all());
+    }
+
+    let body = '';
+    request.on('data', function(chunk) { body += chunk.toString(); });
+    request.on('end', function()
+    {
+        try
+        {
+            const p = new URLSearchParams(body);
+            if (request.method === 'POST')
+                return json_ok(response, user_create(p.get('username'), p.get('password')));
+            if (request.method === 'PUT')
+                return json_ok(response, user_update(p.get('id'), p.get('username'), p.get('password')));
+            if (request.method === 'DELETE')
+                return json_ok(response, user_delete(p.get('id')));
+            json_err(response, 405, 'Método no permitido.');
+        }
+        catch (err) { json_err(response, 500, err.message); }
+    });
+}
+
+// ─── ABM grupos ───────────────────────────────────────────────────────────────
+
+function groups_handler(request, response)
+{
+    if (request.method === 'GET')
+    {
+        const url = new URL(request.url, 'http://' + config.server.ip);
+        const id  = url.searchParams.get('id');
+        return json_ok(response, id ? group_read_one(id) : group_read_all());
+    }
+
+    let body = '';
+    request.on('data', function(chunk) { body += chunk.toString(); });
+    request.on('end', function()
+    {
+        try
+        {
+            const p = new URLSearchParams(body);
+            if (request.method === 'POST')
+                return json_ok(response, group_create(p.get('name')));
+            if (request.method === 'PUT')
+                return json_ok(response, group_update(p.get('id'), p.get('name')));
+            if (request.method === 'DELETE')
+                return json_ok(response, group_delete(p.get('id')));
+            json_err(response, 405, 'Método no permitido.');
+        }
+        catch (err) { json_err(response, 500, err.message); }
+    });
+}
+
+// ─── ABM endpoints ────────────────────────────────────────────────────────────
+
+function endpoints_handler(request, response)
+{
+    if (request.method === 'GET')
+    {
+        const url = new URL(request.url, 'http://' + config.server.ip);
+        const id  = url.searchParams.get('id');
+        return json_ok(response, id ? endpoint_read_one(id) : endpoint_read_all());
+    }
+
+    let body = '';
+    request.on('data', function(chunk) { body += chunk.toString(); });
+    request.on('end', function()
+    {
+        try
+        {
+            const p = new URLSearchParams(body);
+            if (request.method === 'POST')
+                return json_ok(response, endpoint_create(p.get('path')));
+            if (request.method === 'PUT')
+                return json_ok(response, endpoint_update(p.get('id'), p.get('path')));
+            if (request.method === 'DELETE')
+                return json_ok(response, endpoint_delete(p.get('id')));
+            json_err(response, 405, 'Método no permitido.');
+        }
+        catch (err) { json_err(response, 500, err.message); }
+    });
+}
+
+// ─── ABM miembros ─────────────────────────────────────────────────────────────
+
+function members_handler(request, response)
+{
+    if (request.method === 'GET')
+        return json_ok(response, member_read_all());
+
+    let body = '';
+    request.on('data', function(chunk) { body += chunk.toString(); });
+    request.on('end', function()
+    {
+        try
+        {
+            const p = new URLSearchParams(body);
+            if (request.method === 'POST')
+                return json_ok(response, member_create(p.get('id_user'), p.get('id_group')));
+            if (request.method === 'DELETE')
+                return json_ok(response, member_delete(p.get('id_user'), p.get('id_group')));
+            json_err(response, 405, 'Método no permitido.');
+        }
+        catch (err) { json_err(response, 500, err.message); }
+    });
 }
 
 function show_message_handler(request, response)
 {
     console.log('Petición recibida: Mostrando mensaje en el servidor!');
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ message: 'Mensaje procesado' }));
+    json_ok(response, { message: 'Mensaje procesado' });
 }
+
+// ─── Router ───────────────────────────────────────────────────────────────────
 
 let router = new Map();
 router.set('/',            default_handler);
@@ -199,13 +323,16 @@ router.set('/login',       login_handler);
 router.set('/logout',      logout_handler);
 router.set('/register',    register_handler);
 router.set('/checkAccess', check_access_handler);
+router.set('/users',       users_handler);
+router.set('/groups',      groups_handler);
+router.set('/endpoints',   endpoints_handler);
+router.set('/members',     members_handler);
 router.set('/showMessage', show_message_handler);
 
 async function request_dispatcher(request, response)
 {
-    const url  = new URL(request.url, 'http://' + config.server.ip);
-    const path = url.pathname;
-
+    const url     = new URL(request.url, 'http://' + config.server.ip);
+    const path    = url.pathname;
     const handler = router.get(path);
 
     if (handler)
