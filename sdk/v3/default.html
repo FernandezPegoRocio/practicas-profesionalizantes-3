@@ -30,35 +30,36 @@
 
         <h1>Autorizador</h1>
         <p>Usuario activo: <span id="active-user">-</span></p>
-
         <button id="btn-log">Ejecutar /log</button>
         <button id="btn-sayhello">Ejecutar /sayHello</button>
-
         <p id="authorize-result"></p>
 
+        <hr>
+
         <button id="btnMsg">Mostrar mensaje en el servidor</button>
+    </body>
 
-        <script>
+    <script>
 
-        let logged_username = null;
+    let logged_username = null;
 
-        document.getElementById('form-login').addEventListener('submit', async function(e)
+    document.getElementById('form-login').addEventListener('submit', function(e)
+    {
+        e.preventDefault();
+
+        const username = document.getElementById('l-username').value;
+        const password = document.getElementById('l-password').value;
+
+        fetch('/login',
         {
-            e.preventDefault();
-
-            const username = document.getElementById('l-username').value;
-            const password = document.getElementById('l-password').value;
-
-            const res  = await fetch('/login',
-            {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ username, password })
-            });
-
-            const data = await res.json();
-
-            if (data.session)
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ username: username, password: password })
+        })
+        .then(function(res)  { return res.json(); })
+        .then(function(data)
+        {
+            if (data.session && data.session.status === 'enabled')
             {
                 logged_username = username;
                 document.getElementById('active-user').textContent  = username;
@@ -69,19 +70,20 @@
                 document.getElementById('login-result').textContent = 'Usuario o contraseña incorrectos.';
             }
         });
+    });
 
-        async function check_authorize(path)
+    function checkAuthorize(path)
+    {
+        if (!logged_username)
         {
-            if (!logged_username)
-            {
-                document.getElementById('authorize-result').textContent = 'Primero iniciá sesión.';
-                return;
-            }
+            document.getElementById('authorize-result').textContent = 'Primero iniciá sesión.';
+            return;
+        }
 
-            const res  = await fetch('/authorize?username=' + encodeURIComponent(logged_username)
-                                   + '&path='     + encodeURIComponent(path));
-            const data = await res.json();
-
+        fetch('/authorize?username=' + encodeURIComponent(logged_username) + '&path=' + encodeURIComponent(path))
+        .then(function(res)  { return res.json(); })
+        .then(function(data)
+        {
             if (data.error)
             {
                 document.getElementById('authorize-result').textContent = 'Error: ' + data.error;
@@ -90,24 +92,33 @@
 
             document.getElementById('authorize-result').textContent =
                 logged_username + (data.allowed ? ' tiene permiso sobre ' : ' NO tiene permiso sobre ') + path;
-        }
+        });
+    }
 
-        document.getElementById('btn-log').onclick      = () => check_authorize('/log');
-        document.getElementById('btn-sayhello').onclick = () => check_authorize('/sayHello');
+    function onBtnLogOnClick()
+    {
+        checkAuthorize('/log');
+    }
 
-        function onBtnMsgOnClick()
-        {
-            console.log('Enviando petición al servidor...');
-            fetch('/showMessage');
-        }
+    function onBtnSayHelloOnClick()
+    {
+        checkAuthorize('/sayHello');
+    }
 
-        function main()
-        {
-            btnMsg.onclick = onBtnMsgOnClick;
-        }
+    function onBtnMsgOnClick()
+    {
+        console.log('Enviando petición al servidor...');
+        fetch('/showMessage');
+    }
 
-        window.onload = main;
+    function main()
+    {
+        document.getElementById('btn-log').onclick      = onBtnLogOnClick;
+        document.getElementById('btn-sayhello').onclick = onBtnSayHelloOnClick;
+        document.getElementById('btnMsg').onclick       = onBtnMsgOnClick;
+    }
 
-        </script>
-    </body>
+    window.onload = main;
+
+    </script>
 </html>

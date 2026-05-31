@@ -4,9 +4,11 @@ import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { resolve }      from 'node:path';
 
+
 function default_config()
 {
-    return {
+    const config =
+    {
         server:
         {
             ip:           '127.0.0.1',
@@ -18,7 +20,9 @@ function default_config()
             path: './db.sqlite3'
         }
     };
+    return config;
 }
+
 
 function load_config()
 {
@@ -37,7 +41,9 @@ function load_config()
     return config;
 }
 
+
 const config = load_config();
+
 
 function connect_db(path)
 {
@@ -53,12 +59,10 @@ function connect_db(path)
     }
 }
 
+
 const db = connect_db(config.database.path);
 
-// ==================== SEED (Datos iniciales) ====================
-// Carga el escenario de la consigna:
 
-// ←←← Se eliminaron los imports duplicados y las declaraciones duplicadas
 db.exec(`
     CREATE TABLE IF NOT EXISTS user (
         id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,53 +87,53 @@ db.exec(`
     );
 `);
 
-db.exec(`
-    DELETE FROM access;
-    DELETE FROM members;
-    DELETE FROM endpoint;
-    DELETE FROM "group";
-    DELETE FROM user;
-`);
 
-// Usuario de la consigna
-db.prepare('INSERT INTO user (username, password) VALUES (?, ?)').run('usuario_x', '1234');
-
-// Grupo G
-db.prepare('INSERT INTO "group" (name) VALUES (?)').run('grupo_g');
-
-// Asociar usuario al grupo
-const user  = db.prepare('SELECT id FROM user  WHERE username = ?').get('usuario_x');
-const group = db.prepare('SELECT id FROM "group" WHERE name   = ?').get('grupo_g');
-db.prepare('INSERT INTO members (id_user, id_group) VALUES (?, ?)').run(user.id, group.id);
-
-// 5 endpoints totales
-const paths = ['/print', '/log', '/help', '/sayHello', '/sayBye'];
-const insert_ep = db.prepare('INSERT OR IGNORE INTO endpoint (path) VALUES (?)');
-for (const p of paths) insert_ep.run(p);
-
-// Grupo G tiene acceso solo a /print /log /help
-const permitidos = ['/print', '/log', '/help'];
-const insert_access = db.prepare('INSERT INTO access (id_group, id_endpoint) VALUES (?, ?)');
-for (const p of permitidos)
+function seed()
 {
-    const ep = db.prepare('SELECT id FROM endpoint WHERE path = ?').get(p);
-    insert_access.run(group.id, ep.id);
+    const count = db.prepare('SELECT COUNT(*) AS n FROM user').get().n;
+    if (count > 0) return;
+
+
+    db.prepare('INSERT INTO user (username, password) VALUES (?, ?)').run('usuario_x', '1234');
+
+
+    db.prepare('INSERT INTO "group" (name) VALUES (?)').run('grupo_g');
+
+
+    const user  = db.prepare('SELECT id FROM user WHERE username = ?').get('usuario_x');
+    const group = db.prepare('SELECT id FROM "group" WHERE name = ?').get('grupo_g');
+    db.prepare('INSERT INTO members (id_user, id_group) VALUES (?, ?)').run(user.id, group.id);
+
+
+    const paths = ['/print', '/log', '/help', '/sayHello', '/sayBye'];
+    const insert_ep = db.prepare('INSERT OR IGNORE INTO endpoint (path) VALUES (?)');
+    for (const p of paths) insert_ep.run(p);
+
+
+    const permitidos    = ['/print', '/log', '/help'];
+    const insert_access = db.prepare('INSERT INTO access (id_group, id_endpoint) VALUES (?, ?)');
+    for (const p of permitidos)
+    {
+        const ep = db.prepare('SELECT id FROM endpoint WHERE path = ?').get(p);
+        insert_access.run(group.id, ep.id);
+    }
+
+
+    console.log('Datos de prueba cargados.');
+    console.log('  Usuario: usuario_x / 1234');
+    console.log('  Tiene permiso en:    /print  /log  /help');
+    console.log('  No tiene permiso en: /sayHello  /sayBye');
 }
 
-const count = t => db.prepare(`SELECT COUNT(*) AS n FROM "${t}"`).get().n;
-console.log('Seed completado:');
-console.log('  Usuarios :', count('user'));
-console.log('  Grupos   :', count('group'));
-console.log('  Endpoints:', count('endpoint'));
-console.log('  Miembros :', count('members'));
-console.log('  Accesos  :', count('access'));
-console.log('');
-console.log('Usuario de prueba: usuario_x / 1234');
-console.log('Tiene permiso en: /print /log /help');
-console.log('No tiene permiso en: /sayHello /sayBye');
+
+seed();
+
 
 // ─── Objeto de sesión ─────────────────────────────────────────────────────────
-let userSessions = new Map();   
+
+
+let userSessions = new Map();
+
 
 class UserSession
 {
@@ -139,7 +143,10 @@ class UserSession
     }
 }
 
+
 // ─── Autenticador ─────────────────────────────────────────────────────────────
+
+
 function authenticate(username, password)
 {
     const sql  = 'SELECT COUNT(*) AS total FROM user WHERE username = ? AND password = ?';
@@ -148,8 +155,11 @@ function authenticate(username, password)
     return row.total === 1;
 }
 
+
 // ─── Autorizador ──────────────────────────────────────────────────────────────
-function authorize(username, endpoint_path)
+
+
+function authorize(username, endpointPath)
 {
     const sql = `
         SELECT COUNT(*) AS total
@@ -160,42 +170,67 @@ function authorize(username, endpoint_path)
         WHERE  u.username = ?
           AND  e.path     = ?
     `;
+
+
     const stmt = db.prepare(sql);
-    const row  = stmt.get(username, endpoint_path);
+    const row  = stmt.get(username, endpointPath);
     return row.total > 0;
 }
 
+
 // ─── Login / Logout ───────────────────────────────────────────────────────────
+
+
 function login(username, password)
 {
-    const isAuthenticated = authenticate(username, password);
-    if (!isAuthenticated) return null;
-    const existing = userSessions.get(username);
-    if (existing == null)
+    let isAuthenticated = authenticate(username, password);
+
+
+    if (isAuthenticated)
     {
-        const newSession  = new UserSession();
-        newSession.status = 'enabled';
-        userSessions.set(username, newSession);
-        return newSession;
+        let havePreviousSession = userSessions.get(username);
+
+
+        if (havePreviousSession == null)
+        {
+            let newSession    = new UserSession();
+            newSession.status = 'enabled';
+            userSessions.set(username, newSession);
+            return newSession;
+        }
+        else
+        {
+            let previousSession = userSessions.get(username);
+            if (previousSession.status === 'disabled')
+            {
+                previousSession.status = 'enabled';
+            }
+            return previousSession;
+        }
     }
     else
     {
-        existing.status = 'enabled';
-        return existing;
+        return null;
     }
 }
+
 
 function logout(username, password)
 {
-    const isAuthenticated = authenticate(username, password);
+    let isAuthenticated = authenticate(username, password);
+
+
     if (isAuthenticated)
     {
-        const current = userSessions.get(username);
-        if (current) current.status = 'disabled';
+        let currentSession = userSessions.get(username);
+        if (currentSession) currentSession.status = 'disabled';
     }
 }
 
+
 // ─── Lógica de negocio ────────────────────────────────────────────────────────
+
+
 function createUser(username, password)
 {
     const sql  = 'INSERT INTO user (username, password) VALUES (?, ?) RETURNING id';
@@ -204,7 +239,10 @@ function createUser(username, password)
     return { id: row.id, username, password };
 }
 
+
 // ─── Manejadores ──────────────────────────────────────────────────────────────
+
+
 function default_handler(request, response)
 {
     try
@@ -220,6 +258,7 @@ function default_handler(request, response)
     }
 }
 
+
 function login_handler(request, response)
 {
     if (request.method !== 'POST')
@@ -228,17 +267,25 @@ function login_handler(request, response)
         response.end(JSON.stringify({ error: 'Método no permitido. Usa POST.' }));
         return;
     }
+
+
     let body = '';
+
+
     request.on('data', function(chunk)
     {
         body += chunk.toString();
     });
+
+
     request.on('end', function()
     {
         try
         {
             const input   = JSON.parse(body);
             const session = login(input.username, input.password);
+
+
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ session }));
         }
@@ -250,6 +297,7 @@ function login_handler(request, response)
     });
 }
 
+
 function logout_handler(request, response)
 {
     if (request.method !== 'POST')
@@ -258,17 +306,25 @@ function logout_handler(request, response)
         response.end(JSON.stringify({ error: 'Método no permitido. Usa POST.' }));
         return;
     }
+
+
     let body = '';
+
+
     request.on('data', function(chunk)
     {
         body += chunk.toString();
     });
+
+
     request.on('end', function()
     {
         try
         {
             const input = JSON.parse(body);
             logout(input.username, input.password);
+
+
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ status: true }));
         }
@@ -280,6 +336,7 @@ function logout_handler(request, response)
     });
 }
 
+
 function register_handler(request, response)
 {
     if (request.method !== 'POST')
@@ -288,22 +345,23 @@ function register_handler(request, response)
         response.end(JSON.stringify({ error: 'Método no permitido. Usa POST.' }));
         return;
     }
+
+
     let body = '';
+
+
     request.on('data', function(chunk)
     {
         body += chunk.toString();
     });
+
+
     request.on('end', function()
     {
         try
         {
             const params = new URLSearchParams(body);
-            const input  =
-            {
-                username: params.get('username'),
-                password: params.get('password')
-            };
-            const output = createUser(input.username, input.password);
+            const output = createUser(params.get('username'), params.get('password'));
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify(output));
         }
@@ -315,28 +373,40 @@ function register_handler(request, response)
     });
 }
 
+
 function authorize_handler(request, response)
 {
     const url      = new URL(request.url, 'http://' + config.server.ip);
     const username = url.searchParams.get('username');
     const path     = url.searchParams.get('path');
+
+
     if (!username || !path)
     {
         response.writeHead(400, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Parámetros username y path requeridos' }));
         return;
     }
+
+
     const session = userSessions.get(username);
+
+
     if (!session || session.status !== 'enabled')
     {
         response.writeHead(401, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Sesión inactiva o inexistente' }));
         return;
     }
+
+
     const allowed = authorize(username, path);
+
+
     response.writeHead(200, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ username, path, allowed }));
 }
+
 
 function show_message_handler(request, response)
 {
@@ -345,7 +415,10 @@ function show_message_handler(request, response)
     response.end(JSON.stringify({ message: 'Mensaje procesado' }));
 }
 
+
 // ─── Router ───────────────────────────────────────────────────────────────────
+
+
 let router = new Map();
 router.set('/',            default_handler);
 router.set('/login',       login_handler);
@@ -354,11 +427,14 @@ router.set('/register',    register_handler);
 router.set('/authorize',   authorize_handler);
 router.set('/showMessage', show_message_handler);
 
+
 async function request_dispatcher(request, response)
 {
     const url     = new URL(request.url, 'http://' + config.server.ip);
     const path    = url.pathname;
     const handler = router.get(path);
+
+
     if (handler)
     {
         return await handler(request, response);
@@ -370,10 +446,15 @@ async function request_dispatcher(request, response)
     }
 }
 
+
 function start()
 {
     console.log('Servidor ejecutándose en http://' + config.server.ip + ':' + config.server.port);
 }
 
+
 let server = createServer(request_dispatcher);
 server.listen(config.server.port, config.server.ip, start);
+
+
+
