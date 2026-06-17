@@ -43,6 +43,14 @@ _______________________________________________________________CONSIGNA_________
    logout() → autentica y deshabilita el objeto de sesión.
    La sesión no persiste en base de datos. Vive mientras el servidor esté corriendo.
    Habrá tantos objetos de sesión como usuarios hayan interactuado con el sistema.
+
+3.Cifrado de contraseñas con SHA256
+   El hash se calcula en el frontend usando crypto.subtle del browser.
+   La contraseña en texto plano nunca llega al servidor.
+   El frontend envía el campo password_hash con el resultado del algoritmo SHA256.
+   El backend recibe el hash y lo compara directamente contra lo almacenado en la BD.
+   La columna se renombró de password a password_hash para reflejar correctamente su contenido.
+
 _______________________________________________________________AJUSTES________________________________________________________________
 --- Se corrigió const db moviendola antes de las funciones que lo utilizan (authenticate, authorize, createUser).
 
@@ -50,6 +58,15 @@ _______________________________________________________________AJUSTES__________
 
 --- Se incorporó la función seed() que carga los datos de prueba al iniciar el servidor si la base de datos está vacía, sin necesidad de un archivo externo.
 
+--- Se incorporó cifrado SHA256 de contraseñas
+
+--- La función calcularHashSHA256() en default.html usa crypto.subtle para hashear
+
+--- la contraseña antes de enviarla, tanto en el registro como en el login.
+
+--- El backend no hashea: recibe y compara hash contra hash.
+
+--- La columna password fue renombrada a password_hash en la tabla user.
 
 _______________________________________________________________EJECUCIÓN______________________________________________________________
 1. Abrir la terminal y navegar hasta la carpeta del proyecto:
