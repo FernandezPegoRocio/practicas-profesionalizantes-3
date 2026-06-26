@@ -6,20 +6,33 @@ Base: sdk/v3
 _____________________________________________________________IMPORTANTE______________________________________________________________
 
 POST   
+
 --> En la ruta /login autentica e inicia sesión
+
 --> En la ruta /logout cierra la sesión del usuario autenticado
+
 --> En la ruta /register registra un nuevo usuario en la base de datos
+
 --> En la ruta /authorize verifica si el usuario tiene permiso sobre un path
+
 --> En la ruta /showMessage muestra un mensaje en el servidor
 
 Se usa:
+
 --- Módulo nativo node: http para crear el servidor (en el puerto 8080)
+
 --- Objeto Map para asociar rutas con sus handlers
+
 --- Módulo nativo node: sqlite para la conexión a SQLite
+
 --- Archivo config.json para gestión de configuraciones
+
 --- Map en memoria para gestión de sesiones (username –> UserSession)
+
 --- Módulo nativo node:  crypto para hash SHA256 en el seed
+
 --- Apache como servidor web estático (en el puerto 8081) para el frontend
+
 --- Cabeceras x-user-id y x-api-key para autenticación en todas las peticiones
 
 -----Lo que hace cada parte-----
