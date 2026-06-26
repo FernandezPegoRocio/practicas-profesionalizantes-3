@@ -52,21 +52,28 @@ Puntos desarrollados:
     Access-Control-Allow-Methods: GET, POST, OPTIONS
 
 2. Desacoplamiento del autenticador
+
 --- Los datos de autenticación viajan en cabeceras HTTP separadas:
        x-user-id: username
        x-api-key: password_hash
+
 --- El cuerpo de cada petición queda exclusivamente para los datos del caso de uso.
+
 --- Se agregó la cabecera CORS:
        Access-Control-Allow-Headers: Content-Type, x-user-id, x-api-key
+
 ---El frontend almacena userId y key en memoria y los incluye en todas las peticiones a través de getRpcApiHeaders().
 
 3. Uniformización RPC
+
 ---Se adoptó el estilo RPC con las siguientes reglas:
+
 + Toda la información viaja por POST sin excepción.
 + Los cuerpos se serializan siempre en JSON.
 + Los paths están escritos en camelCase.
 
 ---- Se adoptaron los siguientes códigos de estado:
+
 + 200: petición válida y procesada satisfactoriamente
 + 400: error de uso en la especificación (cuerpo mal formado, ruta inválida)
 + 401: error por falta de permisos
