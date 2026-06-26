@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+    </head>
+    <body>
+        <h1>Registro de usuarios</h1>
+        <form id="form-register">
+            <label>Usuario:</label>
+            <input id="r-username" required><br>
+            <label>Password:</label>
+            <input id="r-password" type="password" required><br>
+            <button type="submit">Crear usuario</button>
+        </form>
+        <p id="register-result"></p>
+
+        <hr>
+
+        <h1>Iniciar sesión</h1>
+        <form id="form-login">
+            <label>Usuario:</label>
+            <input id="l-username" required><br>
+            <label>Password:</label>
+            <input id="l-password" type="password" required><br>
+            <button type="submit">Ingresar</button>
+        </form>
+        <p id="login-result"></p>
+
+        <hr>
+
+        <h1>Autorizador</h1>
+        <p>Usuario activo: <span id="active-user">-</span></p>
+        <button id="btn-log">Ejecutar /log</button>
+        <button id="btn-sayhello">Ejecutar /sayHello</button>
+        <p id="authorize-result"></p>
+
+        <hr>
+
+        <button id="btnMsg">Mostrar mensaje en el servidor</button>
+    </body>
+
+    <script>
+
+    let userId = null;
+    let key    = null;
+
+    // ── Dominio ───────────────────────────────────────────────────────────────
+
+    function getPrcaDominio()
+    {
+        return 'http://127.0.0.1:8080';
+    }
+
+    // ── Headers RPC ───────────────────────────────────────────────────────────
+
+    function getRpcApiHeaders()
+    {
+        let headers =
+        {
+            'Content-Type': 'application/json',
+            'x-user-id':    userId,
+            'x-api-key':    key
+        };
+        return headers;
+    }
+
+    // ── Clases de excepción ───────────────────────────────────────────────────
+    // Cada categoría de error tiene su propia clase que hereda de Error─────────
+
+    class SpecificationError extends Error
+    {
+        constructor(detail)
+        {
+            super('SpecificationError');
+            this.detail = detail;
+        }
+    }
+
+    class UnauthorizedError extends Error
+    {
+        constructor(detail)
+        {
+            super('UnauthorizedError');
+            this.detail = detail;
+        }
+    }
+
+    class DomainError extends Error
+    {
+        constructor(detail)
+        {
+            super('DomainError');
+            this.detail = detail;
+        }
+    }
+
+    class ServerError extends Error
+    {
+        constructor(detail)
+        {
+            super('ServerError');
+            this.detail = detail;
+        }
+    }
+
+    // ── Fetch centralizado ────────────────────────────────────────────────────
+
+    async function RPCApiFetch(path, input)
+    {
+        try
+        {
+            const req = await fetch(getPrcaDominio() + path,
+            {
+                method:  'POST',
+                headers: getRpcApiHeaders(),
+                body:    JSON.stringify(input)
+            });
+
+            switch (req.status)
+            {
+                case 200:
+                    return await req.json();
+
+                case 400:
+                    throw new SpecificationError(await req.json());
+
+                case 401:
+                    throw new UnauthorizedError(await req.json());
+
+                case 422:
+                    throw new DomainError(await req.json());
+
+                case 500:
+                    throw new ServerError(await req.json());
+
+                default:
+                    throw new SpecificationError({ exception: 'UnexpectedStatus', detail: [req.status] });
+            }
+        }
+        catch (err)
+        {
+            if (err instanceof SpecificationError ||
+                err instanceof UnauthorizedError  ||
+                err instanceof DomainError        ||
+                err instanceof ServerError)
+            {
+                throw err;
+            }
+            throw new ServerError({ exception: 'NetworkError', detail: [err.message] });
+        }
+    }
+
+    // ── Hash SHA256 en el frontend ────────────────────────────────────────────
+
+    async function calcularHashSHA256(cadena)
+    {
+        const encoder    = new TextEncoder();
+        const data       = encoder.encode(cadena);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray  = Array.from(new Uint8Array(hashBuffer));
+        const hashHex    = hashArray.map(function(byte) { return byte.toString(16).padStart(2, '0'); }).join('');
+        return hashHex;
+    }
+
+    // ── Registro ──────────────────────────────────────────────────────────────
+
+    document.getElementById('form-register').addEventListener('submit', async function(e)
+    {
+        e.preventDefault();
+
+        userId = document.getElementById('r-username').value;
+        key    = await calcularHashSHA256(document.getElementById('r-password').value);
+
+        try
+        {
+            const res = await RPCApiFetch('/register', {});
+            document.getElementById('register-result').textContent = 'Usuario creado: ' + res.username;
+        }
+        catch (err)
+        {
+            console.error(err);
+            document.getElementById('register-result').textContent = 'Error: ' + err.message;
+        }
+    });
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+
+    async function login()
+    {
+        userId = document.getElementById('l-username').value;
+        key    = await calcularHashSHA256(document.getElementById('l-password').value);
+
+        try
+        {
+            const res = await RPCApiFetch('/login', {});
+
+            if (res.session && res.session.status === 'enabled')
+            {
+                document.getElementById('active-user').textContent  = userId;
+                document.getElementById('login-result').textContent = 'Sesión iniciada: ' + userId;
+            }
+        }
+        catch (err)
+        {
+            console.error(err);
+
+            if (err instanceof UnauthorizedError)
+            {
+                document.getElementById('login-result').textContent = 'Usuario o contraseña incorrectos.';
+            }
+            else
+            {
+                document.getElementById('login-result').textContent = 'Error: ' + err.message;
+            }
+        }
+    }
+
+    document.getElementById('form-login').addEventListener('submit', async function(e)
+    {
+        e.preventDefault();
+        await login();
+    });
+
+    // ── Autorizador ───────────────────────────────────────────────────────────
+
+    async function checkAuthorize(path)
+    {
+        if (!userId)
+        {
+            document.getElementById('authorize-result').textContent = 'Primero iniciá sesión.';
+            return;
+        }
+
+        try
+        {
+            const res = await RPCApiFetch('/authorize', { path: path });
+            document.getElementById('authorize-result').textContent =
+                userId + (res.allowed ? ' tiene permiso sobre ' : ' NO tiene permiso sobre ') + path;
+        }
+        catch (err)
+        {
+            console.error(err);
+            document.getElementById('authorize-result').textContent = 'Error: ' + err.message;
+        }
+    }
+
+    function onBtnLogOnClick()
+    {
+        checkAuthorize('/log');
+    }
+
+    function onBtnSayHelloOnClick()
+    {
+        checkAuthorize('/sayHello');
+    }
+
+    function onBtnMsgOnClick()
+    {
+        RPCApiFetch('/showMessage', {}).catch(function(err) { console.error(err); });
+    }
+
+    function main()
+    {
+        document.getElementById('btn-log').onclick      = onBtnLogOnClick;
+        document.getElementById('btn-sayhello').onclick = onBtnSayHelloOnClick;
+        document.getElementById('btnMsg').onclick       = onBtnMsgOnClick;
+    }
+
+    window.onload = main;
+
+    </script>
+</html>
