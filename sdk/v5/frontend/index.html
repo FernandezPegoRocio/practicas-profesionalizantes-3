@@ -2,7 +2,7 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Login</title>
+        <title>SDK v5</title>
         <script type="module" src="./WCLoginFormView.js"></script>
         <script type="module" src="./WCRegisterFormView.js"></script>
     </head>
@@ -25,6 +25,7 @@
         <hr>
 
         <button id="btnMsg">Mostrar mensaje en el servidor</button>
+
     </body>
 
     <script>
@@ -149,50 +150,53 @@
         return hashHex;
     }
 
-    // ── Eventos de los WebComponents ──────────────────────────────────────────
+    // ── Evento unificado de los WebComponents ─────────────────────────────────
 
-    document.addEventListener('wc-register-submit', async function(e)
+    document.addEventListener('request', async function(e)
     {
-        userId = e.detail.username;
-        key    = await calcularHashSHA256(e.detail.password);
-
-        try
+        if (e.detail.action === 'register')
         {
-            const res = await RPCWebAPIFetch('register', {});
-            alert('Usuario creado: ' + res.username);
-        }
-        catch (err)
-        {
-            console.error(err);
-            alert('Error: ' + err.message);
-        }
-    });
+            userId = e.detail.username;
+            key    = await calcularHashSHA256(e.detail.password);
 
-    document.addEventListener('wc-login-submit', async function(e)
-    {
-        userId = e.detail.username;
-        key    = await calcularHashSHA256(e.detail.password);
-
-        try
-        {
-            const res = await RPCWebAPIFetch('login', {});
-
-            if (res.session && res.session.status === 'enabled')
+            try
             {
-                document.getElementById('active-user').textContent = userId;
+                const res = await RPCWebAPIFetch('register', {});
+                alert('Usuario creado: ' + res.username);
             }
-        }
-        catch (err)
-        {
-            console.error(err);
-
-            if (err instanceof UnauthorizedError)
+            catch (err)
             {
-                alert('Usuario o contraseña incorrectos.');
-            }
-            else
-            {
+                console.error(err);
                 alert('Error: ' + err.message);
+            }
+        }
+
+        if (e.detail.action === 'login')
+        {
+            userId = e.detail.username;
+            key    = await calcularHashSHA256(e.detail.password);
+
+            try
+            {
+                const res = await RPCWebAPIFetch('login', {});
+
+                if (res.session && res.session.status === 'enabled')
+                {
+                    document.getElementById('active-user').innerText = userId;
+                }
+            }
+            catch (err)
+            {
+                console.error(err);
+
+                if (err instanceof UnauthorizedError)
+                {
+                    alert('Usuario o contraseña incorrectos.');
+                }
+                else
+                {
+                    alert('Error: ' + err.message);
+                }
             }
         }
     });
@@ -203,20 +207,20 @@
     {
         if (!userId)
         {
-            document.getElementById('authorize-result').textContent = 'Primero iniciá sesión.';
+            document.getElementById('authorize-result').innerText = 'Primero iniciá sesión.';
             return;
         }
 
         try
         {
             const res = await RPCWebAPIFetch('authorize', { path: path });
-            document.getElementById('authorize-result').textContent =
+            document.getElementById('authorize-result').innerText =
                 userId + (res.allowed ? ' tiene permiso sobre ' : ' NO tiene permiso sobre ') + path;
         }
         catch (err)
         {
             console.error(err);
-            document.getElementById('authorize-result').textContent = 'Error: ' + err.message;
+            document.getElementById('authorize-result').innerText = 'Error: ' + err.message;
         }
     }
 
