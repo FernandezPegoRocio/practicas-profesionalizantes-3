@@ -3,20 +3,31 @@
     <head>
         <meta charset="UTF-8">
         <title>SDK v5</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+        <link rel="stylesheet" href="./assets/icons/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="./assets/css/w3pro-4.13.css">
+        <link rel="stylesheet" href="./assets/css/w3-theme.css">
+        <link rel="stylesheet" href="./assets/css/admin-styles.css">
         <script type="module" src="./WCLoginFormView.js"></script>
         <script type="module" src="./WCRegisterFormView.js"></script>
     </head>
     <body>
 
+        <wc-login-form-view
+            logo-src="./assets/admin-logo.png"
+            logo-alt="Logo"
+            title="Bienvenido"
+            register-url="register.html"
+            button-text="Ingresar">
+        </wc-login-form-view>
+
+        <hr>
+
         <wc-register-form-view></wc-register-form-view>
 
         <hr>
 
-        <wc-login-form-view></wc-login-form-view>
-
-        <hr>
-
-        <h1>Autorizador</h1>
+        <h3>Pruebas de Autorización (RPC - POST)</h3>
         <p>Usuario activo: <span id="active-user">-</span></p>
         <button id="btn-log">Ejecutar /log</button>
         <button id="btn-sayhello">Ejecutar /sayHello</button>
@@ -44,51 +55,33 @@
 
     function getRpcApiHeaders()
     {
-        let headers =
-        {
+        return {
             'Content-Type': 'application/json',
             'x-user-id':    userId,
             'x-api-key':    key
         };
-        return headers;
     }
 
     // ── Clases de excepción ───────────────────────────────────────────────────
 
     class SpecificationError extends Error
     {
-        constructor(detail)
-        {
-            super('SpecificationError');
-            this.detail = detail;
-        }
+        constructor(detail) { super('SpecificationError'); this.detail = detail; }
     }
 
     class UnauthorizedError extends Error
     {
-        constructor(detail)
-        {
-            super('UnauthorizedError');
-            this.detail = detail;
-        }
+        constructor(detail) { super('UnauthorizedError'); this.detail = detail; }
     }
 
     class DomainError extends Error
     {
-        constructor(detail)
-        {
-            super('DomainError');
-            this.detail = detail;
-        }
+        constructor(detail) { super('DomainError'); this.detail = detail; }
     }
 
     class ServerError extends Error
     {
-        constructor(detail)
-        {
-            super('ServerError');
-            this.detail = detail;
-        }
+        constructor(detail) { super('ServerError'); this.detail = detail; }
     }
 
     // ── RPCWebAPIFetch ────────────────────────────────────────────────────────
@@ -106,23 +99,12 @@
 
             switch (req.status)
             {
-                case 200:
-                    return await req.json();
-
-                case 400:
-                    throw new SpecificationError(await req.json());
-
-                case 401:
-                    throw new UnauthorizedError(await req.json());
-
-                case 422:
-                    throw new DomainError(await req.json());
-
-                case 500:
-                    throw new ServerError(await req.json());
-
-                default:
-                    throw new SpecificationError({ exception: 'UnexpectedStatus', detail: [req.status] });
+                case 200: return await req.json();
+                case 400: throw new SpecificationError(await req.json());
+                case 401: throw new UnauthorizedError(await req.json());
+                case 422: throw new DomainError(await req.json());
+                case 500: throw new ServerError(await req.json());
+                default:  throw new SpecificationError({ exception: 'UnexpectedStatus', detail: [req.status] });
             }
         }
         catch (err)
@@ -138,7 +120,7 @@
         }
     }
 
-    // ── Hash SHA256 en el frontend ────────────────────────────────────────────
+    // ── Hash SHA256 ───────────────────────────────────────────────────────────
 
     async function calcularHashSHA256(cadena)
     {
@@ -146,58 +128,55 @@
         const data       = encoder.encode(cadena);
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
         const hashArray  = Array.from(new Uint8Array(hashBuffer));
-        const hashHex    = hashArray.map(function(byte) { return byte.toString(16).padStart(2, '0'); }).join('');
-        return hashHex;
+        return hashArray.map(function(byte) { return byte.toString(16).padStart(2, '0'); }).join('');
     }
 
-    // ── Evento unificado de los WebComponents ─────────────────────────────────
+    // ── Eventos de los WebComponents ──────────────────────────────────────────
 
-    document.addEventListener('request', async function(e)
+    document.addEventListener('login-submit', async function(e)
     {
-        if (e.detail.action === 'register')
-        {
-            userId = e.detail.username;
-            key    = await calcularHashSHA256(e.detail.password);
+        userId = e.detail.username;
+        key    = await calcularHashSHA256(e.detail.password);
 
-            try
+        try
+        {
+            const res = await RPCWebAPIFetch('login', {});
+
+            if (res.session && res.session.status === 'enabled')
             {
-                const res = await RPCWebAPIFetch('register', {});
-                alert('Usuario creado: ' + res.username);
+                document.getElementById('active-user').innerText = userId;
+                document.querySelector('wc-login-form-view').clearForm();
             }
-            catch (err)
+        }
+        catch (err)
+        {
+            console.error(err);
+            if (err instanceof UnauthorizedError)
             {
-                console.error(err);
+                alert('Usuario o contraseña incorrectos.');
+            }
+            else
+            {
                 alert('Error: ' + err.message);
             }
         }
+    });
 
-        if (e.detail.action === 'login')
+    document.addEventListener('register-submit', async function(e)
+    {
+        userId = e.detail.nombre;
+        key    = await calcularHashSHA256(e.detail.password);
+
+        try
         {
-            userId = e.detail.username;
-            key    = await calcularHashSHA256(e.detail.password);
-
-            try
-            {
-                const res = await RPCWebAPIFetch('login', {});
-
-                if (res.session && res.session.status === 'enabled')
-                {
-                    document.getElementById('active-user').innerText = userId;
-                }
-            }
-            catch (err)
-            {
-                console.error(err);
-
-                if (err instanceof UnauthorizedError)
-                {
-                    alert('Usuario o contraseña incorrectos.');
-                }
-                else
-                {
-                    alert('Error: ' + err.message);
-                }
-            }
+            const res = await RPCWebAPIFetch('register', {});
+            alert('Usuario creado: ' + res.username);
+            document.querySelector('wc-register-form-view').clearForm();
+        }
+        catch (err)
+        {
+            console.error(err);
+            alert('Error: ' + err.message);
         }
     });
 
@@ -224,20 +203,9 @@
         }
     }
 
-    function onBtnLogOnClick()
-    {
-        checkAuthorize('/log');
-    }
-
-    function onBtnSayHelloOnClick()
-    {
-        checkAuthorize('/sayHello');
-    }
-
-    function onBtnMsgOnClick()
-    {
-        RPCWebAPIFetch('showMessage', {}).catch(function(err) { console.error(err); });
-    }
+    function onBtnLogOnClick()      { checkAuthorize('/log');      }
+    function onBtnSayHelloOnClick() { checkAuthorize('/sayHello'); }
+    function onBtnMsgOnClick()      { RPCWebAPIFetch('showMessage', {}).catch(function(err) { console.error(err); }); }
 
     function main()
     {

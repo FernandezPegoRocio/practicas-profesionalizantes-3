@@ -1,105 +1,115 @@
-// ── FUNCIONES DE CREACIÓN ────────────────────────────────────────────────────
+// ── FUNCIONES DE CREACIÓN DE ELEMENTOS ───────────────────────────────────────
 
-function createFormRow(labelText, inputId, inputType, placeholderText)
+function createFormField(labelText, inputType, placeholder, fieldName)
 {
-    // Construir elementos
-    let divRow   = document.createElement('div');
-    let divLabel = document.createElement('div');
-    let label    = document.createElement('label');
-    let divInput = document.createElement('div');
-    let input    = document.createElement('input');
+    var row          = document.createElement('div');
+    var label        = document.createElement('label');
+    var input        = document.createElement('input');
+    var inputWrapper = document.createElement('div');
 
-    // Asignar clases y estilos
-    divRow.classList.add('w3-row', 'w3-margin-bottom');
-    divLabel.classList.add('w3-col', 'l2');
-    label.innerText = labelText;
-    divInput.classList.add('w3-col', 'l10');
-    input.type = inputType;
-    input.id   = inputId;
-    input.classList.add('w3-input', 'w3-border', 'w3-round');
-    input.placeholder = placeholderText;
+    input.id          = 'register-input-' + fieldName;
+    input.name        = fieldName;
+    input.type        = inputType;
+    input.placeholder = placeholder;
 
-    // Ensamblar
-    divLabel.appendChild(label);
-    divInput.appendChild(input);
-    divRow.appendChild(divLabel);
-    divRow.appendChild(divInput);
+    row.classList.add('w3-row', 'w3-margin-bottom');
+    label.classList.add('w3-col', 'l2');
+    inputWrapper.classList.add('w3-col', 'l10');
+    input.classList.add('w3-input', 'w3-round', 'w3-border');
 
-    return divRow;
+    label.textContent = labelText;
+
+    inputWrapper.appendChild(input);
+    row.appendChild(label);
+    row.appendChild(inputWrapper);
+
+    return row;
 }
 
-function createRegisterContainer()
+function createSubmitButton()
 {
-    // ── Construir elementos─────────────────────────────────────────────────────────────
-    let divCard      = document.createElement('div');
-    let header       = document.createElement('header');
-    let divBody      = document.createElement('div');
-    let rowName      = createFormRow('Name',             'wc-reg-name',     'text',     'Enter Your Name');
-    let rowEmail     = createFormRow('Email',            'wc-reg-email',    'text',     'Enter Your Email Address');
-    let rowMobile    = createFormRow('Mobile Number',    'wc-reg-mobile',   'text',     'Enter Your Mobile Number');
-    let rowPass      = createFormRow('Password',         'wc-reg-password', 'password', 'Enter Password');
-    let rowConfirm   = createFormRow('Confirm Password', 'wc-reg-confirm',  'password', 'Confirm Password');
-    let divRowCheck  = document.createElement('div');
-    let divColEmpty  = document.createElement('div');
-    let divColCheck  = document.createElement('div');
-    let labelCheck   = document.createElement('label');
-    let inputCheck   = document.createElement('input');
-    let spanCheck    = document.createTextNode(' I Agree Terms & Conditions');
-    let divRowBtn    = document.createElement('div');
-    let divColEmpty2 = document.createElement('div');
-    let divColBtn    = document.createElement('div');
-    let btnRegister  = document.createElement('button');
-    let iconLock     = document.createElement('i');
-    let spanBtnText  = document.createTextNode(' Register');
-    let pResult      = document.createElement('p');
+    var button     = document.createElement('button');
+    var icon       = document.createElement('i');
+    var buttonText = document.createTextNode(' Registrarse');
 
-    // ── Asignar clases y estilos─────────────────────────────────────────────────────────────
-    divCard.classList.add('w3-white', 'w3-round', 'w3-margin-bottom', 'w3-border');
+    button.id   = 'register-submit-btn';
+    button.type = 'button';
+
+    icon.classList.add('fa', 'fa-fw', 'fa-lock');
+    button.classList.add('w3-button', 'w3-primary', 'w3-round');
+
+    button.appendChild(icon);
+    button.appendChild(buttonText);
+
+    return button;
+}
+
+function createRegisterFormHeader()
+{
+    var header = document.createElement('header');
+
     header.classList.add('w3-padding-large', 'w3-large', 'w3-border-bottom');
-    header.style.fontWeight = '500';
-    header.innerText = 'HORIZONTAL FORM';
-    divBody.classList.add('w3-padding-large');
-    divRowCheck.classList.add('w3-row', 'w3-margin-bottom');
-    divColEmpty.classList.add('w3-col', 'l2');
-    divColCheck.classList.add('w3-col', 'l10');
-    inputCheck.type = 'checkbox';
-    inputCheck.classList.add('w3-check');
-    inputCheck.checked = true;
-    divRowBtn.classList.add('w3-row', 'w3-margin-bottom');
-    divColEmpty2.classList.add('w3-col', 'l2');
-    divColBtn.classList.add('w3-col', 'l10');
-    btnRegister.type = 'button';
-    btnRegister.id   = 'wc-reg-btn';
-    btnRegister.classList.add('w3-button', 'w3-primary', 'w3-round');
-    iconLock.classList.add('fa', 'fa-fw', 'fa-lock');
-    pResult.id = 'wc-reg-result';
+    header.textContent = 'REGISTRO PARA NUEVOS USUARIOS';
 
-    // ── Ensamblar─────────────────────────────────────────────────────────────
-    labelCheck.appendChild(inputCheck);
-    labelCheck.appendChild(spanCheck);
-    divColCheck.appendChild(labelCheck);
-    divRowCheck.appendChild(divColEmpty);
-    divRowCheck.appendChild(divColCheck);
-    btnRegister.appendChild(iconLock);
-    btnRegister.appendChild(spanBtnText);
-    divColBtn.appendChild(btnRegister);
-    divRowBtn.appendChild(divColEmpty2);
-    divRowBtn.appendChild(divColBtn);
-    divBody.appendChild(rowName);
-    divBody.appendChild(rowEmail);
-    divBody.appendChild(rowMobile);
-    divBody.appendChild(rowPass);
-    divBody.appendChild(rowConfirm);
-    divBody.appendChild(divRowCheck);
-    divBody.appendChild(divRowBtn);
-    divBody.appendChild(pResult);
-    divCard.appendChild(header);
-    divCard.appendChild(divBody);
-
-    return divCard;
+    return header;
 }
 
-// ── WEBCOMPONENT ─────────────────────────────────────────────────────────────
+function createRegisterFormBody()
+{
+    var body = document.createElement('div');
+    var form = document.createElement('form');
+
+    var fields =
+    [
+        { label: 'Nombre',               type: 'text',     placeholder: 'Ingrese su nombre completo',               name: 'nombre'          },
+        { label: 'Email',                type: 'email',    placeholder: 'Ingrese su dirección de correo electrónico', name: 'email'           },
+        { label: 'Número de Celular',    type: 'tel',      placeholder: 'Ingrese su número de celular',              name: 'celular'         },
+        { label: 'Contraseña',           type: 'password', placeholder: 'Ingrese su contraseña',                     name: 'password'        },
+        { label: 'Confirmar Contraseña', type: 'password', placeholder: 'Confirmar Contraseña',                      name: 'confirmPassword' }
+    ];
+
+    var actionRow      = document.createElement('div');
+    var actionColEmpty = document.createElement('div');
+    var actionCol      = document.createElement('div');
+    var submitButton   = createSubmitButton();
+
+    actionRow.classList.add('w3-row', 'w3-margin-bottom');
+    actionColEmpty.classList.add('w3-col', 'l2');
+    actionCol.classList.add('w3-col', 'l10');
+
+    for (var i = 0; i < fields.length; i++)
+    {
+        var field     = fields[i];
+        var formField = createFormField(field.label, field.type, field.placeholder, field.name);
+        form.appendChild(formField);
+    }
+
+    actionCol.appendChild(submitButton);
+    actionRow.appendChild(actionColEmpty);
+    actionRow.appendChild(actionCol);
+    form.appendChild(actionRow);
+
+    body.classList.add('w3-padding-large');
+    body.appendChild(form);
+
+    return body;
+}
+
+function createRegisterFormCard()
+{
+    var card   = document.createElement('div');
+    var header = createRegisterFormHeader();
+    var body   = createRegisterFormBody();
+
+    card.classList.add('w3-white', 'w3-round', 'w3-margin-bottom', 'w3-border');
+
+    card.appendChild(header);
+    card.appendChild(body);
+
+    return card;
+}
+
+// ── CLASE WCRegisterFormView ──────────────────────────────────────────────────
 
 class WCRegisterFormView extends HTMLElement
 {
@@ -107,45 +117,100 @@ class WCRegisterFormView extends HTMLElement
     {
         super();
 
-        this.container  = createRegisterContainer();
-        this.btnRegister = this.container.querySelector('#wc-reg-btn');
+        this._card         = null;
+        this._form         = null;
+        this._submitButton = null;
+        this._inputs       = {};
 
-        this.appendChild(this.container);
-    }
+        this._onSubmitClick = this._handleSubmit.bind(this);
 
-    _despacharRequest()
-    {
-        const username = this.querySelector('#wc-reg-name').value;
-        const password = this.querySelector('#wc-reg-password').value;
-        const confirm  = this.querySelector('#wc-reg-confirm').value;
-
-        if (!username || !password)
-        {
-            this.querySelector('#wc-reg-result').innerText = 'Completá los campos requeridos.';
-            return;
-        }
-
-        if (password !== confirm)
-        {
-            this.querySelector('#wc-reg-result').innerText = 'Las contraseñas no coinciden.';
-            return;
-        }
-
-        this.dispatchEvent(new CustomEvent('request',
-        {
-            bubbles: true,
-            detail:  { action: 'register', username, password }
-        }));
+        this._render();
     }
 
     connectedCallback()
     {
-        this.btnRegister.addEventListener('click', this._despacharRequest.bind(this));
+        this._attachEventHandlers();
     }
 
     disconnectedCallback()
     {
-        this.btnRegister.removeEventListener('click', this._despacharRequest.bind(this));
+        this._detachEventHandlers();
+    }
+
+    _render()
+    {
+        if (this.childElementCount > 0) return;
+
+        this._card = createRegisterFormCard();
+        this.appendChild(this._card);
+
+        this._form         = this.querySelector('form');
+        this._submitButton = this.querySelector('#register-submit-btn');
+
+        var inputFields = ['nombre', 'email', 'celular', 'password', 'confirmPassword'];
+        for (var i = 0; i < inputFields.length; i++)
+        {
+            var fieldName          = inputFields[i];
+            this._inputs[fieldName] = this.querySelector('#register-input-' + fieldName);
+        }
+    }
+
+    _attachEventHandlers()
+    {
+        if (this._submitButton)
+        {
+            this._submitButton.onclick = this._onSubmitClick;
+        }
+    }
+
+    _detachEventHandlers()
+    {
+        if (this._submitButton)
+        {
+            this._submitButton.onclick = null;
+        }
+    }
+
+    _handleSubmit(event)
+    {
+        var detail = {};
+        var keys   = Object.keys(this._inputs);
+        for (var i = 0; i < keys.length; i++)
+        {
+            var key    = keys[i];
+            detail[key] = this._inputs[key].value;
+        }
+
+        var customEvent = new CustomEvent('register-submit',
+        {
+            bubbles:  true,
+            composed: true,
+            detail:   detail
+        });
+
+        this.dispatchEvent(customEvent);
+    }
+
+    clearForm()
+    {
+        var keys = Object.keys(this._inputs);
+        for (var i = 0; i < keys.length; i++)
+        {
+            var key            = keys[i];
+            this._inputs[key].value = '';
+        }
+    }
+
+    getFormData()
+    {
+        var data = {};
+        var keys = Object.keys(this._inputs);
+        for (var i = 0; i < keys.length; i++)
+        {
+            var key  = keys[i];
+            data[key] = this._inputs[key].value;
+        }
+        return data;
     }
 }
 

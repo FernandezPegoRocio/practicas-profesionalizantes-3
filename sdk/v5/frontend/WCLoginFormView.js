@@ -1,91 +1,135 @@
-// ── FUNCIONES DE CREACIÓN ────────────────────────────────────────────────────
-// Van por fuera de la clase porque solo se ejecutan una vez en el constructor
-// y no deben ser accesibles como métodos públicos del componente.
+// ── FUNCIONES DE CREACIÓN DE ELEMENTOS ───────────────────────────────────────
 
-function createLoginContainer()
+function createLoginFormLogoSection(component)
 {
-    // ── Construir elementos────────────────────────────────────────────────────
-    let divPadding  = document.createElement('div');
-    let divAuto     = document.createElement('div');
-    let divCard     = document.createElement('div');
-    let divBody     = document.createElement('div');
-    let divCenter   = document.createElement('div');
-    let pSignIn     = document.createElement('p');
-    let divUser     = document.createElement('div');
-    let inputUser   = document.createElement('input');
-    let divPass     = document.createElement('div');
-    let inputPass   = document.createElement('input');
-    let divCheck    = document.createElement('div');
-    let labelCheck  = document.createElement('label');
-    let inputCheck  = document.createElement('input');
-    let spanCheck   = document.createTextNode('I AGREE WITH TERMS & CONDITIONS');
-    let btnSignIn   = document.createElement('button');
-    let pResult     = document.createElement('p');
-    let divFooter   = document.createElement('div');
-    let pFooter     = document.createElement('p');
-    let spanFooter  = document.createElement('span');
-    let aSignUp     = document.createElement('a');
+    var logoSection = document.createElement('div');
+    var imgLogo     = document.createElement('img');
+    var pTitle      = document.createElement('p');
 
-    // ── Asignar clases y estilos────────────────────────────────────────────────────
-    divPadding.classList.add('w3-padding-32');
-    divAuto.classList.add('w3-auto');
-    divAuto.style.width = '380px';
-    divCard.classList.add('w3-white', 'w3-round', 'w3-margin-bottom', 'w3-border');
-    divBody.classList.add('w3-padding-large');
-    divCenter.classList.add('w3-center', 'w3-padding-16');
-    pSignIn.innerText = 'SIGN IN';
-    divUser.classList.add('w3-margin-bottom');
-    inputUser.type = 'text';
-    inputUser.id   = 'wc-login-username';
-    inputUser.classList.add('w3-input', 'w3-round', 'w3-border');
-    inputUser.placeholder = 'Enter Username';
-    divPass.classList.add('w3-margin-bottom');
-    inputPass.type = 'password';
-    inputPass.id   = 'wc-login-password';
-    inputPass.classList.add('w3-input', 'w3-round', 'w3-border');
-    inputPass.placeholder = 'Enter Password';
-    divCheck.classList.add('w3-margin-bottom');
-    inputCheck.type = 'checkbox';
-    inputCheck.id   = 'wc-login-checkbox';
-    inputCheck.classList.add('w3-check');
-    inputCheck.checked = true;
-    labelCheck.htmlFor = 'wc-login-checkbox';
-    btnSignIn.type = 'button';
-    btnSignIn.id   = 'wc-login-btn';
-    btnSignIn.classList.add('w3-button', 'w3-round', 'w3-margin-bottom', 'w3-primary', 'w3-block');
-    btnSignIn.innerText = 'Sign In';
-    pResult.id = 'wc-login-result';
-    divFooter.classList.add('w3-center', 'w3-border-top');
-    pFooter.classList.add('w3-margin');
-    spanFooter.innerText = 'Do not have an account? ';
-    aSignUp.href = 'register.html';
-    aSignUp.innerText = 'Sign Up here';
+    imgLogo.id = 'login-logo';
+    pTitle.id  = 'login-title';
 
-    // ── Ensamblar────────────────────────────────────────────────────
-    divCenter.appendChild(pSignIn);
-    divUser.appendChild(inputUser);
-    divPass.appendChild(inputPass);
-    labelCheck.appendChild(inputCheck);
-    labelCheck.appendChild(spanCheck);
-    divCheck.appendChild(labelCheck);
-    pFooter.appendChild(spanFooter);
-    pFooter.appendChild(aSignUp);
-    divFooter.appendChild(pFooter);
-    divBody.appendChild(divCenter);
-    divBody.appendChild(divUser);
-    divBody.appendChild(divPass);
-    divBody.appendChild(divCheck);
-    divBody.appendChild(btnSignIn);
-    divBody.appendChild(pResult);
-    divCard.appendChild(divBody);
-    divCard.appendChild(divFooter);
-    divAuto.appendChild(divCard);
-    divPadding.appendChild(divAuto);
+    imgLogo.src        = component.getAttribute('logo-src') || '';
+    imgLogo.alt        = component.getAttribute('logo-alt') || '';
+    pTitle.textContent = component.getAttribute('title') || 'LOGIN';
 
-    return divPadding;
+    logoSection.classList.add('w3-center', 'w3-padding-16');
+    imgLogo.classList.add('w3-image');
+
+    logoSection.appendChild(imgLogo);
+    logoSection.appendChild(pTitle);
+
+    return logoSection;
 }
 
-// ── WEBCOMPONENT────────────────────────────────────────────────────
+function createLoginFormUsernameField()
+{
+    var wrapper = document.createElement('div');
+    var input   = document.createElement('input');
+
+    input.id          = 'login-input-username';
+    input.type        = 'text';
+    input.placeholder = 'Nombre de usuario';
+
+    wrapper.classList.add('w3-margin-bottom');
+    input.classList.add('w3-input', 'w3-round', 'w3-border');
+
+    wrapper.appendChild(input);
+
+    return wrapper;
+}
+
+function createLoginFormPasswordField()
+{
+    var wrapper = document.createElement('div');
+    var input   = document.createElement('input');
+
+    input.id          = 'login-input-password';
+    input.type        = 'password';
+    input.placeholder = 'Contraseña';
+
+    wrapper.classList.add('w3-margin-bottom');
+    input.classList.add('w3-input', 'w3-round', 'w3-border');
+
+    wrapper.appendChild(input);
+
+    return wrapper;
+}
+
+function createLoginFormSubmitButton(component)
+{
+    var button = document.createElement('button');
+
+    button.id          = 'login-submit-btn';
+    button.type        = 'button';
+    button.textContent = component.getAttribute('button-text') || 'Ingresar';
+
+    button.classList.add('w3-button', 'w3-round', 'w3-margin-bottom', 'w3-primary', 'w3-block');
+
+    return button;
+}
+
+function createLoginFormFooter(component)
+{
+    var cardFooter   = document.createElement('div');
+    var pFooter      = document.createElement('p');
+    var spanNoAccount = document.createElement('span');
+    var aRegister    = document.createElement('a');
+
+    aRegister.id = 'login-register-link';
+
+    aRegister.href        = component.getAttribute('register-url') || 'register.html';
+    aRegister.textContent = 'Registrate aquí';
+    spanNoAccount.textContent = 'No tenés una cuenta? ';
+
+    cardFooter.classList.add('w3-center', 'w3-border-top');
+    pFooter.classList.add('w3-margin');
+    spanNoAccount.classList.add('w3-text-warning');
+
+    pFooter.appendChild(spanNoAccount);
+    pFooter.appendChild(aRegister);
+    cardFooter.appendChild(pFooter);
+
+    return cardFooter;
+}
+
+function createLoginFormBody(component)
+{
+    var cardBody      = document.createElement('div');
+    var logoSection   = createLoginFormLogoSection(component);
+    var usernameField = createLoginFormUsernameField();
+    var passwordField = createLoginFormPasswordField();
+    var submitButton  = createLoginFormSubmitButton(component);
+
+    cardBody.classList.add('w3-padding-large');
+
+    cardBody.appendChild(logoSection);
+    cardBody.appendChild(usernameField);
+    cardBody.appendChild(passwordField);
+    cardBody.appendChild(submitButton);
+
+    return cardBody;
+}
+
+function createLoginFormCard(component)
+{
+    var cardWrapper = document.createElement('div');
+    var card        = document.createElement('div');
+    var cardBody    = createLoginFormBody(component);
+    var cardFooter  = createLoginFormFooter(component);
+
+    cardWrapper.style.width = '380px';
+    cardWrapper.classList.add('w3-auto');
+    card.classList.add('w3-white', 'w3-round', 'w3-margin-bottom', 'w3-border');
+
+    card.appendChild(cardBody);
+    card.appendChild(cardFooter);
+    cardWrapper.appendChild(card);
+
+    return cardWrapper;
+}
+
+// ── CLASE WCLoginFormView ─────────────────────────────────────────────────────
 
 class WCLoginFormView extends HTMLElement
 {
@@ -93,38 +137,103 @@ class WCLoginFormView extends HTMLElement
     {
         super();
 
-        this.container = createLoginContainer();
-        this.btnSignIn = this.container.querySelector('#wc-login-btn');
+        this._imgLogo       = null;
+        this._pTitle        = null;
+        this._inputUsername = null;
+        this._inputPassword = null;
+        this._btnSubmit     = null;
+        this._aRegister     = null;
 
-        this.appendChild(this.container);
+        this._handleSubmit = this._handleSubmit.bind(this);
+
+        this._render();
     }
 
-    _despacharRequest()
+    static get observedAttributes()
     {
-        const username = this.querySelector('#wc-login-username').value;
-        const password = this.querySelector('#wc-login-password').value;
-
-        if (!username || !password)
-        {
-            this.querySelector('#wc-login-result').innerText = 'Completá usuario y contraseña.';
-            return;
-        }
-
-        this.dispatchEvent(new CustomEvent('request',
-        {
-            bubbles: true,
-            detail:  { action: 'login', username, password }
-        }));
+        return ['logo-src', 'logo-alt', 'title', 'register-url', 'button-text'];
     }
 
     connectedCallback()
     {
-        this.btnSignIn.addEventListener('click', this._despacharRequest.bind(this));
+        this._attachEventHandlers();
     }
 
     disconnectedCallback()
     {
-        this.btnSignIn.removeEventListener('click', this._despacharRequest.bind(this));
+        this._detachEventHandlers();
+    }
+
+    attributeChangedCallback(name, oldValue, newValue)
+    {
+        if (oldValue === newValue) return;
+        if (!this._imgLogo)       return;
+
+        if (name === 'logo-src')      this._imgLogo.src          = newValue;
+        if (name === 'logo-alt')      this._imgLogo.alt          = newValue;
+        if (name === 'title')         this._pTitle.textContent   = newValue;
+        if (name === 'register-url')  this._aRegister.href       = newValue;
+        if (name === 'button-text')   this._btnSubmit.textContent = newValue;
+    }
+
+    _render()
+    {
+        if (this.childElementCount > 0) return;
+
+        var cardWrapper = createLoginFormCard(this);
+        this.appendChild(cardWrapper);
+
+        this._imgLogo       = this.querySelector('#login-logo');
+        this._pTitle        = this.querySelector('#login-title');
+        this._inputUsername = this.querySelector('#login-input-username');
+        this._inputPassword = this.querySelector('#login-input-password');
+        this._btnSubmit     = this.querySelector('#login-submit-btn');
+        this._aRegister     = this.querySelector('#login-register-link');
+    }
+
+    _attachEventHandlers()
+    {
+        if (this._btnSubmit)
+        {
+            this._btnSubmit.onclick = this._handleSubmit;
+        }
+    }
+
+    _detachEventHandlers()
+    {
+        if (this._btnSubmit)
+        {
+            this._btnSubmit.onclick = null;
+        }
+    }
+
+    _handleSubmit()
+    {
+        var event = new CustomEvent('login-submit',
+        {
+            bubbles:  true,
+            composed: true,
+            detail:
+            {
+                username: this._inputUsername.value,
+                password: this._inputPassword.value
+            }
+        });
+        this.dispatchEvent(event);
+    }
+
+    clearForm()
+    {
+        if (this._inputUsername) this._inputUsername.value = '';
+        if (this._inputPassword) this._inputPassword.value = '';
+    }
+
+    getFormData()
+    {
+        return {
+            username: this._inputUsername ? this._inputUsername.value : '',
+            password: this._inputPassword ? this._inputPassword.value : ''
+        };
     }
 }
 
