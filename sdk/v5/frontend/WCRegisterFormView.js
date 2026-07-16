@@ -129,7 +129,10 @@ class WCRegisterFormView extends HTMLElement
 
     connectedCallback()
     {
-        this._attachEventHandlers();
+        if (this._submitButton)
+        {
+            this._submitButton.onclick = this._onSubmitClick;
+        }
     }
 
     disconnectedCallback()
@@ -155,21 +158,7 @@ class WCRegisterFormView extends HTMLElement
         }
     }
 
-    _attachEventHandlers()
-    {
-        if (this._submitButton)
-        {
-            this._submitButton.onclick = this._onSubmitClick;
-        }
-    }
-
-    _detachEventHandlers()
-    {
-        if (this._submitButton)
-        {
-            this._submitButton.onclick = null;
-        }
-    }
+    
 
     _handleSubmit(event)
     {

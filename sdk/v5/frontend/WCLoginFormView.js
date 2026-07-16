@@ -149,39 +149,28 @@ class WCLoginFormView extends HTMLElement
         this._render();
     }
 
-    static get observedAttributes()
+connectedCallback()
     {
-        return ['logo-src', 'logo-alt', 'title', 'register-url', 'button-text'];
-    }
-
-    connectedCallback()
-    {
-        this._attachEventHandlers();
+        if (this._btnSubmit)
+        {
+            this._btnSubmit.onclick = this._handleSubmit;
+        }
     }
 
     disconnectedCallback()
     {
-        this._detachEventHandlers();
-    }
-
-    attributeChangedCallback(name, oldValue, newValue)
-    {
-        if (oldValue === newValue) return;
-        if (!this._imgLogo)       return;
-
-        if (name === 'logo-src')      this._imgLogo.src          = newValue;
-        if (name === 'logo-alt')      this._imgLogo.alt          = newValue;
-        if (name === 'title')         this._pTitle.textContent   = newValue;
-        if (name === 'register-url')  this._aRegister.href       = newValue;
-        if (name === 'button-text')   this._btnSubmit.textContent = newValue;
+        if (this._btnSubmit)
+        {
+            this._btnSubmit.onclick = null;
+        }
     }
 
     _render()
     {
         if (this.childElementCount > 0) return;
 
-        var cardWrapper = createLoginFormCard(this);
-        this.appendChild(cardWrapper);
+        var card = createLoginFormCard(this);
+        this.appendChild(card);
 
         this._imgLogo       = this.querySelector('#login-logo');
         this._pTitle        = this.querySelector('#login-title');
@@ -191,37 +180,19 @@ class WCLoginFormView extends HTMLElement
         this._aRegister     = this.querySelector('#login-register-link');
     }
 
-    _attachEventHandlers()
-    {
-        if (this._btnSubmit)
-        {
-            this._btnSubmit.onclick = this._handleSubmit;
-        }
-    }
-
-    _detachEventHandlers()
-    {
-        if (this._btnSubmit)
-        {
-            this._btnSubmit.onclick = null;
-        }
-    }
-
     _handleSubmit()
     {
-        var event = new CustomEvent('login-submit',
+        var detail = this.getFormData();
+
+        var customEvent = new CustomEvent('login-submit',
         {
             bubbles:  true,
             composed: true,
-            detail:
-            {
-                username: this._inputUsername.value,
-                password: this._inputPassword.value
-            }
+            detail:   detail
         });
-        this.dispatchEvent(event);
-    }
 
+        this.dispatchEvent(customEvent);
+    }
     clearForm()
     {
         if (this._inputUsername) this._inputUsername.value = '';
