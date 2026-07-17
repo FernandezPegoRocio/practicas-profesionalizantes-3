@@ -156,8 +156,13 @@ connectedCallback()
             this._btnSubmit.onclick = this._handleSubmit;
         }
     }
-
-  
+    disconnectedCallback()
+{
+    if (this._btnSubmit)
+    {
+        this._btnSubmit.onclick = null;
+    }
+}  
     _render()
     {
         if (this.childElementCount > 0) return;
