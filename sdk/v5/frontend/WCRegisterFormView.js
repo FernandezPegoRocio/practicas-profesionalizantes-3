@@ -135,10 +135,6 @@ class WCRegisterFormView extends HTMLElement
         }
     }
 
-    disconnectedCallback()
-    {
-        this._detachEventHandlers();
-    }
 
     _render()
     {
@@ -158,7 +154,6 @@ class WCRegisterFormView extends HTMLElement
         }
     }
 
-    
 
     _handleSubmit(event)
     {
