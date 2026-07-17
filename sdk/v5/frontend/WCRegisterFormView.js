@@ -61,11 +61,11 @@ function createRegisterFormBody()
 
     var fields =
     [
-        { label: 'Nombre',               type: 'text',     placeholder: 'Ingrese su nombre completo',               name: 'nombre'          },
+        { label: 'Nombre',               type: 'text',     placeholder: 'Ingrese su nombre completo',                name: 'nombre'          },
         { label: 'Email',                type: 'email',    placeholder: 'Ingrese su dirección de correo electrónico', name: 'email'           },
-        { label: 'Número de Celular',    type: 'tel',      placeholder: 'Ingrese su número de celular',              name: 'celular'         },
-        { label: 'Contraseña',           type: 'password', placeholder: 'Ingrese su contraseña',                     name: 'password'        },
-        { label: 'Confirmar Contraseña', type: 'password', placeholder: 'Confirmar Contraseña',                      name: 'confirmPassword' }
+        { label: 'Número de Celular',    type: 'tel',      placeholder: 'Ingrese su número de celular',               name: 'celular'         },
+        { label: 'Contraseña',           type: 'password', placeholder: 'Ingrese su contraseña',                      name: 'password'        },
+        { label: 'Confirmar Contraseña', type: 'password', placeholder: 'Confirmar Contraseña',                       name: 'confirmPassword' }
     ];
 
     var actionRow      = document.createElement('div');
@@ -117,10 +117,10 @@ class WCRegisterFormView extends HTMLElement
     {
         super();
 
-        this._card         = null;
-        this._form         = null;
-        this._submitButton = null;
-        this._inputs       = {};
+        this._card          = null;
+        this._form          = null;
+        this._submitButton  = null;
+        this._inputs        = {};
 
         this._onSubmitClick = this._handleSubmit.bind(this);
 
@@ -135,13 +135,14 @@ class WCRegisterFormView extends HTMLElement
         }
     }
 
-  disconnectedCallback()
-{
-    if (this._btnSubmit)
+    disconnectedCallback()
     {
-        this._btnSubmit.onclick = null;
+        if (this._submitButton)
+        {
+            this._submitButton.onclick = null;
+        }
     }
-}  
+
     _render()
     {
         if (this.childElementCount > 0) return;
@@ -155,11 +156,10 @@ class WCRegisterFormView extends HTMLElement
         var inputFields = ['nombre', 'email', 'celular', 'password', 'confirmPassword'];
         for (var i = 0; i < inputFields.length; i++)
         {
-            var fieldName          = inputFields[i];
+            var fieldName           = inputFields[i];
             this._inputs[fieldName] = this.querySelector('#register-input-' + fieldName);
         }
     }
-
 
     _handleSubmit(event)
     {
@@ -167,7 +167,7 @@ class WCRegisterFormView extends HTMLElement
         var keys   = Object.keys(this._inputs);
         for (var i = 0; i < keys.length; i++)
         {
-            var key    = keys[i];
+            var key     = keys[i];
             detail[key] = this._inputs[key].value;
         }
 
@@ -186,7 +186,7 @@ class WCRegisterFormView extends HTMLElement
         var keys = Object.keys(this._inputs);
         for (var i = 0; i < keys.length; i++)
         {
-            var key            = keys[i];
+            var key             = keys[i];
             this._inputs[key].value = '';
         }
     }
